@@ -3,6 +3,7 @@ from .base import NMRCommandInputSpec,NMRCommand, find_arman_home
 from ..base import TraitedSpec, File, traits, InputMultiPath, OutputMultiPath, isdefined
 home = find_arman_home()
 
+
 class thicknessInputSpec(NMRCommandInputSpec):
       gif_segmentation = File(exists=True,
                         argstr='-s %s', mandatory=True)
@@ -100,4 +101,3 @@ class gif(NMRCommand):
           outputs['Brain_file'] = os.path.abspath(os.path.join(output_dir,
                   output_dir, t1_name + '_t1_' + 'NeuroMorph_Brain.nii.gz'))
           return outputs
-
