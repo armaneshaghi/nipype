@@ -27,7 +27,6 @@ import warnings
 import tempfile
 
 import numpy as np
-
 from .base import FSLCommand, FSLCommandInputSpec, Info
 from ..base import (traits, TraitedSpec, OutputMultiPath, File,
                     CommandLine, CommandLineInputSpec, isdefined)
@@ -35,6 +34,38 @@ from ...utils.filemanip import (load_json, save_json, split_filename,
                                 fname_presuffix, copyfile)
 
 warn = warnings.warn
+
+class lesion_fillingInputSpec(FSLCommandInputSpec):
+    in_file = File(exists = True, mandatory = True, argstr="-i %s", position = 0,
+            desc = "input image filename (e.g. T1w image)")
+    lesion_mask = File(exists = True, mandatory = True, argstr= "-l %s",position = 1,
+            desc = "filename of lesion mask image")
+    output = traits.String(argstr = "-o %s", position = 2 ,
+            desc = "output file name (lesion filled image)" )
+
+class lesion_fillingOutputSpec(TraitedSpec):
+    out_file = File(exists=True,
+            desc="t1 lesion-filled image")
+
+class lesion_filling(FSLCommand):
+    """Use lesion_filling to fill hypointense lesions os
+    T1-weighted images, such as those seen in multiple sclerosis
+    """
+
+    _cmd = "lesion_filling"
+    input_spec = lesion_fillingInputSpec
+    output_spec = lesion_fillingOutputSpec
+
+    def _gen_outfilename(self):
+        output_file = self.inputs.output
+        if not isdefined( output_file ):
+            self.inputs.output = 't1_lesion_filled.nii.gz'
+            output_file = 't1_lesion_filled.nii.gz'
+        return os.path.abspath( output_file )
+
+    def _list_outputs(self):
+        outputs = self.output_spec().get()
+        outputs['out_file'] = self._gen_outfilename()
 
 
 class CopyGeomInputSpec(FSLCommandInputSpec):
