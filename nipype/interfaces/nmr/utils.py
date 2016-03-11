@@ -3,7 +3,6 @@ from .base import NMRCommandInputSpec,NMRCommand, find_arman_home
 from ..base import TraitedSpec, File, traits, InputMultiPath, OutputMultiPath, isdefined
 home = find_arman_home()
 
-
 class thicknessInputSpec(NMRCommandInputSpec):
       gif_segmentation = File(exists=True,
                         argstr='-s %s', mandatory=True)
