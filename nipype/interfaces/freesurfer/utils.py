@@ -19,8 +19,10 @@ import shutil
 from ..freesurfer.base import (FSCommand, FSTraitedSpec,
                                FSScriptCommand, FSScriptOutputSpec,
                                FSTraitedSpecOpenMP, FSCommandOpenMP)
-from ..base import TraitedSpec, File, traits, OutputMultiPath, isdefined, CommandLine, CommandLineInputSpec
+from ..base import TraitedSpec, File, traits, OutputMultiPath, InputMultiPath, isdefined, CommandLine, CommandLineInputSpec
 from ...utils.filemanip import fname_presuffix, split_filename
+
+
 
 filemap = dict(cor='cor', mgh='mgh', mgz='mgz', minc='mnc',
                afni='brik', brik='brik', bshort='bshort',
@@ -1337,6 +1339,7 @@ class Tkregister2(FSCommand):
             return os.path.abspath(name + '_smoothed' + ext)
 
 
+<<<<<<< HEAD
 class AddXFormToHeaderInputSpec(FSTraitedSpec):
 
     # required
@@ -2886,3 +2889,28 @@ class Apas2Aseg(FSCommand):
         outputs = self._outputs().get()
         outputs["out_file"] = os.path.abspath(self.inputs.out_file)
         return outputs
+=======
+
+'mri_robust_template --mov {timepoints} --template {template} --mapmov {resampled_string} --satit --iscale'
+##mri_robust_template --mov <tp1.mgz> <tp2.mgz> ... --template <template.mgz> --satit [options]
+class mri_robust_templateInputSpec(FSTraitedSpec):
+    moving_volumes = InputMultiPath(File(exists = True),
+            desc = "moving volumes",
+            argstr = "--mov %s...")
+    template = File(mandatory = False, argstr = '--template %s', 
+        desc = "withing subject template, will be automatically set")
+    satit = traits.Bool(True, argstr='--satit', desc = "satit")
+    iscale = traits.Bool(True, argstr = '--iscale', desc = "iscale")
+    moved_images = InputMultiPath(File(), argstr = "--mapmov %s... ",
+            desc = "moved images to template space")
+
+class mri_robust_templateOutputSpec(TraitedSpec):
+    moved_images = OutputMultiPath(File(), desc = 'moved images to template space')
+    template = File(exists = True, desc = 'final within-subject template')
+
+class mri_robust_template(FSCommand):
+    _cmd = 'mri_robust_template'
+    input_spec = mri_robust_templateInputSpec
+    output_spec = mri_robust_templateOutputSpec
+    
+>>>>>>> WIP: FS robust template
