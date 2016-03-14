@@ -1302,23 +1302,22 @@ class Tkregister2(FSCommand):
             _, name, ext = split_filename(self.inputs.in_file)
             return os.path.abspath(name + '_smoothed' + ext)
 
-
-
-'mri_robust_template --mov {timepoints} --template {template} --mapmov {resampled_string} --satit --iscale'
-##mri_robust_template --mov <tp1.mgz> <tp2.mgz> ... --template <template.mgz> --satit [options]
 class mri_robust_templateInputSpec(FSTraitedSpec):
     moving_volumes = InputMultiPath(File(exists = True),
             desc = "moving volumes",
-            argstr = "--mov %s...")
+            argstr = "%s", position = 0)
     template = File(mandatory = False, argstr = '--template %s', 
-        desc = "withing subject template, will be automatically set")
-    satit = traits.Bool(True, argstr='--satit', desc = "satit")
-    iscale = traits.Bool(True, argstr = '--iscale', desc = "iscale")
-    moved_images = InputMultiPath(File(), argstr = "--mapmov %s... ",
-            desc = "moved images to template space")
+        desc = "withing subject template, will be automatically set", 
+        position = 1)
+    satit = traits.Bool(True, argstr='--satit', desc = "satit",
+            usedefault = True, position = 2)
+    iscale = traits.Bool(True, argstr = '--iscale', desc = "iscale",
+            usedefault = True, position = 3)
+    moved_images = traits.List(['moved2template.nii.gz'], argstr = "%s", 
+            desc = "moved images to template space", usedefault = True)
 
 class mri_robust_templateOutputSpec(TraitedSpec):
-    moved_images = OutputMultiPath(File(), desc = 'moved images to template space')
+    moved_images = traits.List(File(exists = True), desc = 'moved images to template space')
     template = File(exists = True, desc = 'final within-subject template')
 
 class mri_robust_template(FSCommand):
@@ -1326,3 +1325,26 @@ class mri_robust_template(FSCommand):
     input_spec = mri_robust_templateInputSpec
     output_spec = mri_robust_templateOutputSpec
     
+    def _format_arg(self, name, spec, value):
+        if name == 'moving_volumes':
+            moving_volumes_list =  self.inputs.moving_volumes
+            return '--mov ' + spec.argstr %( " ".join(moving_volumes_list))
+        elif name == 'moved_images':
+            #moved_images = self.inputs.moved_images
+            #if len(moved_images) == 0:
+            moved_images = []
+            moving_volumes_list =  self.inputs.moving_volumes
+            for image in moving_volumes_list:
+                moved_image = 'moved2template_' + os.path.basename(image) + '.nii.gz'
+                moved_images.append(moved_image)
+            self.inputs.moved_images = moved_images
+            return '--mapmov ' + spec.argstr %(" ".join(moved_images ))
+        return super(mri_robust_template, self)._format_arg(name, spec, value)
+
+    def _list_outputs(self):
+        outputs = self.output_spec().get()
+        outputs['template'] = os.path.abspath(self.inputs.template)
+        if not isdefined(self.inputs.template):
+            outputs['template'] = os.path.abspath('template.nii.gz')
+        output['moved_images'] = [os.path.abspath(f) for f in self.inputs.moved_images]
+        return outputs
