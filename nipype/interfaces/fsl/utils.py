@@ -40,7 +40,8 @@ class lesion_fillingInputSpec(FSLCommandInputSpec):
             desc = "input image filename (e.g. T1w image)")
     lesion_mask = File(exists = True, mandatory = True, argstr= "-l %s",position = 1,
             desc = "filename of lesion mask image")
-    output = traits.String(argstr = "-o %s", position = 2 ,
+    out_file = File(argstr = "-o %s", position = 2 , genfile = True,
+            hash_files = False,
             desc = "output file name (lesion filled image)" )
 
 class lesion_fillingOutputSpec(TraitedSpec):
@@ -57,16 +58,20 @@ class lesion_filling(FSLCommand):
     output_spec = lesion_fillingOutputSpec
 
     def _gen_outfilename(self):
-        output_file = self.inputs.output
-        if not isdefined( output_file ):
-            self.inputs.output = 't1_lesion_filled.nii.gz'
-            output_file = 't1_lesion_filled.nii.gz'
-        return os.path.abspath( output_file )
+        out_file = self.inputs.out_file
+        if not isdefined( out_file ):
+            out_file = os.path.abspath( 't1_lesion_filled.nii.gz' )
+        return os.path.abspath( out_file )
 
     def _list_outputs(self):
         outputs = self.output_spec().get()
         outputs['out_file'] = self._gen_outfilename()
-
+        return outputs
+   
+    def _gen_filename(self, name):
+        if name == 'out_file':
+            return self._list_outputs()[name]
+        return None
 
 class CopyGeomInputSpec(FSLCommandInputSpec):
     in_file = File(exists=True, mandatory=True, argstr="%s", position=0,
@@ -2097,3 +2102,4 @@ class MotionOutliers(FSLCommand):
     input_spec = MotionOutliersInputSpec
     output_spec = MotionOutliersOutputSpec
     _cmd = 'fsl_motion_outliers'
+
