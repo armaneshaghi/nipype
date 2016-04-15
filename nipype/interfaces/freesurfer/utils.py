@@ -1335,7 +1335,7 @@ class mri_robust_template(FSCommand):
             moved_images = []
             moving_volumes_list =  self.inputs.moving_volumes
             for image in moving_volumes_list:
-                moved_image = 'moved2template_' + os.path.basename(image) + '.nii.gz'
+                moved_image = 'moved2template_' + os.path.basename(image)
                 moved_images.append(moved_image)
             self.inputs.moved_images = moved_images
             return '--mapmov ' + spec.argstr %(" ".join(moved_images ))
