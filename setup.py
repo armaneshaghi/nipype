@@ -312,6 +312,7 @@ def main(**extra_args):
                     'nipype.interfaces.afni.tests',
                     'nipype.interfaces.ants',
                     'nipype.interfaces.ants.tests',
+                    'nipype.interfaces.nmr',
                     'nipype.interfaces.camino',
                     'nipype.interfaces.camino.tests',
                     'nipype.interfaces.camino2trackvis',
