@@ -1339,6 +1339,8 @@ class mri_robust_template(FSCommand):
                 moved_images.append(moved_image)
             self.inputs.moved_images = moved_images
             return '--mapmov ' + spec.argstr %(" ".join(moved_images ))
+        elif name == 'template':
+            
         return super(mri_robust_template, self)._format_arg(name, spec, value)
 
     def _list_outputs(self):
@@ -1346,5 +1348,5 @@ class mri_robust_template(FSCommand):
         outputs['template'] = os.path.abspath(self.inputs.template)
         if not isdefined(self.inputs.template):
             outputs['template'] = os.path.abspath('template.nii.gz')
-        output['moved_images'] = [os.path.abspath(f) for f in self.inputs.moved_images]
+        outputs['moved_images'] = [os.path.abspath(f) for f in self.inputs.moved_images]
         return outputs
