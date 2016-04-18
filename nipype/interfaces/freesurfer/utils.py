@@ -2947,8 +2947,6 @@ class mri_robust_template(FSCommand):
                 moved_images.append(moved_image)
             self.inputs.moved_images = moved_images
             return '--mapmov ' + spec.argstr %(" ".join(moved_images ))
-        elif name == 'template':
-            
         return super(mri_robust_template, self)._format_arg(name, spec, value)
 
     def _list_outputs(self):
