@@ -1329,15 +1329,18 @@ class mri_robust_template(FSCommand):
         if name == 'moving_volumes':
             moving_volumes_list =  self.inputs.moving_volumes
             return '--mov ' + spec.argstr %( " ".join(moving_volumes_list))
+        elif name == 'template':
+            template = self.inputs.template
+            return '--template ' +  os.path.abspath(template)
         elif name == 'moved_images':
-            #moved_images = self.inputs.moved_images
+            moved_images = self.inputs.moved_images
             #if len(moved_images) == 0:
-            moved_images = []
-            moving_volumes_list =  self.inputs.moving_volumes
-            for image in moving_volumes_list:
-                moved_image = 'moved2template_' + os.path.basename(image)
-                moved_images.append(moved_image)
-            self.inputs.moved_images = moved_images
+            #moved_images = []
+            #moving_volumes_list =  self.inputs.moving_volumes
+            #for image in moving_volumes_list:
+            #    moved_image = 'moved2template_' + os.path.basename(image)
+            #    moved_images.append(moved_image)
+            #self.inputs.moved_images = moved_images
             return '--mapmov ' + spec.argstr %(" ".join(moved_images ))
         return super(mri_robust_template, self)._format_arg(name, spec, value)
 

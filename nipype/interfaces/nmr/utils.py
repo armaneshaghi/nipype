@@ -50,7 +50,7 @@ class stepsOutputSpec(TraitedSpec):
                     mandatory = False)
 
 class steps(NMRCommand):
-      _cmd = ( '{home}/scripts/brain_steps_comic.py'.format(home = home) )
+      _cmd = ( '{home}/scripts/brain_steps_comic.sh'.format(home = home) )
       input_spec = stepsInputSpec
       output_spec = stepsOutputSpec
       
@@ -69,7 +69,7 @@ class gifOutputSpec( TraitedSpec ):
       Cerebellum_file = File(exists = True, desc = 'cerebellar file from gif')
       Brain_file = File(exists = True, desc = 'brain file')
       priors = File(exists = True, desc = 'priors file')
-      bias_corrected = File(exists = True, 't1 bias corrected image')
+      bias_corrected = File(exists = True, desc = 't1 bias corrected image')
 
 class gif(NMRCommand):
      _cmd = '{home}/scripts/seg_GIF_comic.sh'.format(
@@ -77,17 +77,17 @@ class gif(NMRCommand):
      input_spec = thicknessInputSpec 
      output_spec = thicknessOutputSpec
 
-      def _list_outputs(self):
+     def _list_outputs(self):
           outputs = self.output_spec().get()
           t1 = self.inputs.t1
           t1_name = t1.split('.')[0]
           output_dir = self.inputs.output_dir
           outputs['segmentation_file'] = os.path.abspath(os.path.join(
                   output_dir, t1_name + '_t1_' + 'NeuroMorph_' +
-                  'Segmentation.nii.gz')
+                  'Segmentation.nii.gz'))
           outputs['tiv_file'] = os.path.abspath(os.path.join(
                   output_dir, t1_name + '_t1_' + 'NeuroMorph_' + 
-                  'TIV.nii.gz')
+                  'TIV.nii.gz'))
           outputs['parcellation_file'] = os.path.abspath(os.path.join(
                   output_dir, t1_name + '_t1_' + 'NeuroMorph_' +
                   'Parcellation.nii.gz'))
