@@ -46,13 +46,22 @@ class stepsInputSpec( NMRCommandInputSpec ):
 
 class stepsOutputSpec(TraitedSpec):
       steps_mask = File(exists = True, position = 1,
-                    argstr = '-output %s',
+                    argstr = '%s',
                     mandatory = False)
 
 class steps(NMRCommand):
       _cmd = ( '{home}/scripts/brain_steps_comic.sh'.format(home = home) )
       input_spec = stepsInputSpec
       output_spec = stepsOutputSpec
+      def _format_arg(self, name, spec, value):
+          if name == 'steps_mask':
+              steps_mask =  self.inputs.steps_mask
+              return '-output ' + os.path.abspath( steps_mask  )
+          return super(steps, self)._format_arg(name, spec, value)
+      def _list_outputs(self):
+          outputs = self.output_spec().get()
+          outputs['steps_mask'] = os.path.abspath(self.inputs.steps_mask)
+          return outputs
       
 #/home/aeshaghi/scripts/seg_GIF_comic.sh ${input} ${output_dir}
 class gifInputSpec( NMRCommandInputSpec ):
@@ -74,8 +83,8 @@ class gifOutputSpec( TraitedSpec ):
 class gif(NMRCommand):
      _cmd = '{home}/scripts/seg_GIF_comic.sh'.format(
                      home = home)
-     input_spec = thicknessInputSpec 
-     output_spec = thicknessOutputSpec
+     input_spec = gifInputSpec
+     output_spec = gifOutputSpec
 
      def _list_outputs(self):
           outputs = self.output_spec().get()
