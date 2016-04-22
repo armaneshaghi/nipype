@@ -1,14 +1,16 @@
-#placeholders are as follows:
-#{subject_id_to_replace}
-#{fu1_t1_nii_gz}
-#{fu1_t2_nii_gz}
-#{fu1_t2_lesion_mask_nii_gz}
-#{baseline_t1_nii_gz}
-#{baseline_t2_nii_gz}
-#{baseline_t2_lesion_mask_nii_gz}
+##placeholders are as follows:
+##{subject_id_to_replace}
+##{fu1_t1_nii_gz}
+##{fu1_t2_nii_gz}
+##{fu1_t2_lesion_mask_nii_gz}
+##{baseline_t1_nii_gz}
+##{baseline_t2_nii_gz}
+##{baseline_t2_lesion_mask_nii_gz}
 
+import os
 from nipype.interfaces.fsl import FLIRT
 from nipype.interfaces.fsl import BET
+from nipype.interfaces.fsl import ApplyXfm
 from nipype.interfaces.ants import N4BiasFieldCorrection
 from nipype import SelectFiles
 from nipype.interfaces.fsl import UnaryMaths
@@ -17,6 +19,10 @@ from nipype.interfaces.utility import Function
 from nipype.interfaces.freesurfer.utils import mri_robust_template
 from nipype.interfaces.nmr.utils import steps
 from nipype.interfaces.nmr.utils import gif
+import nipype.pipeline.engine as pe
+import nipype.interfaces.io as nio
+import nipype.interfaces.utility as util
+
 
 subject_list = ['{subject_id_to_replace}']
 workflow = pe.Workflow(name = 'second_wave')
@@ -25,13 +31,13 @@ infosource = pe.Node(interface = util.IdentityInterface(fields=['subject_id']),
                                                           name = "infosource")
 infosource.iterables = ('subject_id', subject_list)
 
-templates = {
-            "baseline_t1" : '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{baseline_t1_nii_gz}',
-            "baseline_t2" : '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{baseline_t2_nii_gz}',
-            "baseline_t2_lesion" : '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{baseline_t2_lesion_mask_nii_gz}',
-            "fu1_t1" :  '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{fu1_t1_nii_gz}' ,
-            "fu1_t2" : '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{fu1_t2_nii_gz}',
-            "fu1_t2_lesion" :  '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{fu1_t2_lesion_mask_nii_gz}' }
+templates = {{
+            "baseline_t1" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{baseline_t1_nii_gz}',
+            "baseline_t2" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{baseline_t2_nii_gz}',
+            "baseline_t2_lesion" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{baseline_t2_lesion_mask_nii_gz}',
+            "fu1_t1" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu1_t1_nii_gz}' ,
+            "fu1_t2" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu1_t2_nii_gz}',
+            "fu1_t2_lesion" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu1_t2_lesion_mask_nii_gz}' }}
 
 file_selector = pe.Node( SelectFiles(templates), "selectfiles") 
 
@@ -49,12 +55,10 @@ n4_baseline.inputs.dimension = 3
 n4_fu1.inputs.dimension = 3
 regt2t1_baseline = pe.Node(interface = FLIRT(), name = 't2t1_baseline')
 regt2t1_fu1 = pe.Node(interface = FLIRT(), name = 't2t1_fu1')
-regt2maskt1_baseline = pe.Node(interface = FLIRT(), 
+regt2maskt1_baseline = pe.Node(interface = ApplyXfm(), 
                               name = 't2maskt1_baseline')
-
 regt2maskt1_baseline.inputs.apply_xfm = True
-
-regt2maskt1_fu1 = pe.Node(interface = FLIRT(),
+regt2maskt1_fu1 = pe.Node(interface = ApplyXfm(),
                              name = 't2maskt1_fu1')
 binarise_baseline = pe.Node(interface = UnaryMaths(),
                            name = 'binarise_baseline')
