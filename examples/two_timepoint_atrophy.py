@@ -1,8 +1,8 @@
 #placeholders are as follows:
 #{subject_id_to_replace}
-#{fu_t1_nii_gz}
-#{fu_t2_nii_gz}
-#{fu_t2_lesion_mask_nii_gz}
+#{fu1_t1_nii_gz}
+#{fu1_t2_nii_gz}
+#{fu1_t2_lesion_mask_nii_gz}
 #{baseline_t1_nii_gz}
 #{baseline_t2_nii_gz}
 #{baseline_t2_lesion_mask_nii_gz}
