@@ -1,11 +1,11 @@
 #placeholders are as follows:
 #{subject_id_to_replace}
-#{fu_t1.nii.gz}
-#{fu_t2.nii.gz}
-#{fu_t2_lesion_mask.nii.gz}
-#{baseline_t1.nii.gz}
-#{baseline_t2.nii.gz}
-#{baseline_t2_lesion_mask.nii.gz}
+#{fu_t1_nii_gz}
+#{fu_t2_nii_gz}
+#{fu_t2_lesion_mask_nii_gz}
+#{baseline_t1_nii_gz}
+#{baseline_t2_nii_gz}
+#{baseline_t2_lesion_mask_nii_gz}
 
 from nipype.interfaces.fsl import FLIRT
 from nipype.interfaces.fsl import BET
@@ -26,12 +26,12 @@ infosource = pe.Node(interface = util.IdentityInterface(fields=['subject_id']),
 infosource.iterables = ('subject_id', subject_list)
 
 templates = {
-            "baseline_t1" : '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{baseline_t1.nii.gz}',
-            "baseline_t2" : '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{baseline_t2.nii.gz}',
-            "baseline_t2_lesion" : '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{baseline_t2_lesion_mask.nii.gz}',
-            "fu1_t1" :  '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{fu1_t1.nii.gz}' ,
-            "fu1_t2" : '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{fu1_t2.nii.gz}',
-            "fu1_t2_lesion" :  '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{fu1_t2_lesion_mask.nii.gz}' }
+            "baseline_t1" : '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{baseline_t1_nii_gz}',
+            "baseline_t2" : '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{baseline_t2_nii_gz}',
+            "baseline_t2_lesion" : '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{baseline_t2_lesion_mask_nii_gz}',
+            "fu1_t1" :  '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{fu1_t1_nii_gz}' ,
+            "fu1_t2" : '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{fu1_t2_nii_gz}',
+            "fu1_t2_lesion" :  '/cluster/project0/MS_LATA/fourd/patients/{subject_id}/{fu1_t2_lesion_mask_nii_gz}' }
 
 file_selector = pe.Node( SelectFiles(templates), "selectfiles") 
 
