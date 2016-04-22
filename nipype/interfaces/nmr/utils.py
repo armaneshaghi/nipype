@@ -3,6 +3,14 @@ from .base import NMRCommandInputSpec,NMRCommand, find_arman_home
 from ..base import TraitedSpec, File, traits, InputMultiPath, OutputMultiPath, isdefined
 home = find_arman_home()
 
+niftk_dir=os.environ['NIFTK_DIR']
+
+class niftk_biasfieldInputSpec(NMRCommandInputSpec):
+
+
+
+class niftk_biasfield(NMRCommand):
+
 class thicknessInputSpec(NMRCommandInputSpec):
       gif_segmentation = File(exists=True,
                         argstr='-s %s', mandatory=True)
@@ -68,7 +76,7 @@ class gifInputSpec( NMRCommandInputSpec ):
       t1 = File(exists = True, position = 0, 
                       argstr = '%s', mandatory = True)
       output_dir = traits.String(argstr = '%s', position = 1, 
-                      mandatory = True)
+                      mandatory = False)
 
 class gifOutputSpec( TraitedSpec ):
       segmentation_file = File(exists = True,
@@ -85,6 +93,12 @@ class gif(NMRCommand):
                      home = home)
      input_spec = gifInputSpec
      output_spec = gifOutputSpec
+     
+     def _format_arg(self, name, spec, value):
+         if name == 'output_dir':
+             output_dir =  self.inputs.output_dir
+             return  os.path.abspath( output_dir )
+         return super(gif, self)._format_arg(name, spec, value)
 
      def _list_outputs(self):
           outputs = self.output_spec().get()
