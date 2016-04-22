@@ -1338,11 +1338,6 @@ class Tkregister2(FSCommand):
             _, name, ext = split_filename(self.inputs.in_file)
             return os.path.abspath(name + '_smoothed' + ext)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-<<<<<<< HEAD
 class AddXFormToHeaderInputSpec(FSTraitedSpec):
 
     # required
@@ -2909,30 +2904,13 @@ class mri_robust_templateInputSpec(FSTraitedSpec):
 
 class mri_robust_templateOutputSpec(TraitedSpec):
     moved_images = traits.List(File(exists = True), desc = 'moved images to template space')
-
-
-class mri_robust_templateInputSpec(FSTraitedSpec):
-    moving_volumes = InputMultiPath(File(exists = True),
-            desc = "moving volumes",
-            argstr = "%s", position = 0)
-    template = File(mandatory = False, argstr = '--template %s', 
-        desc = "withing subject template, will be automatically set", 
-        position = 1)
-    satit = traits.Bool(True, argstr='--satit', desc = "satit",
-            usedefault = True, position = 2)
-    iscale = traits.Bool(True, argstr = '--iscale', desc = "iscale",
-            usedefault = True, position = 3)
-    moved_images = traits.List(['moved2template.nii.gz'], argstr = "%s", 
-            desc = "moved images to template space", usedefault = True)
-
-class mri_robust_templateOutputSpec(TraitedSpec):
-    moved_images = traits.List(File(exists = True), desc = 'moved images to template space')
     template = File(exists = True, desc = 'final within-subject template')
 
 class mri_robust_template(FSCommand):
     _cmd = 'mri_robust_template'
     input_spec = mri_robust_templateInputSpec
     output_spec = mri_robust_templateOutputSpec
+    
     def _format_arg(self, name, spec, value):
         if name == 'moving_volumes':
             moving_volumes_list =  self.inputs.moving_volumes
@@ -2959,4 +2937,3 @@ class mri_robust_template(FSCommand):
             outputs['template'] = os.path.abspath('template.nii.gz')
         outputs['moved_images'] = [os.path.abspath(f) for f in self.inputs.moved_images]
         return outputs
-
