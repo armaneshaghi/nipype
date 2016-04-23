@@ -128,13 +128,13 @@ robust_output_baseline_node = pe.Node(name = 'robust_output_baseline',
 robust_output_fu1_node = pe.Node(name = 'robust_output_fu1', 
                      interface = Function(input_names = ['volume_list'],
                                           output_names = ['volume_fu1'],
-                                          function = return_baseline
+                                          function = return_fu1
                                          ))
 
 robust_output_fu2_node = pe.Node(name = 'robust_output_fu2',
                      interface = Function(input_names = ['volume_list'],
                                           output_names = ['volume_fu2'],
-                                          function = return_baseline
+                                          function = return_fu2
                                          ))
 gif_baseline = pe.Node(interface = gif(),
                       name = 'gif_baseline')

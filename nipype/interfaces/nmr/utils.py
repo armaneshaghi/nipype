@@ -3,13 +3,6 @@ from .base import NMRCommandInputSpec,NMRCommand, find_arman_home
 from ..base import TraitedSpec, File, traits, InputMultiPath, OutputMultiPath, isdefined
 home = find_arman_home()
 
-niftk_dir=os.environ['NIFTK_DIR']
-
-class niftk_biasfieldInputSpec(NMRCommandInputSpec):
-
-
-
-class niftk_biasfield(NMRCommand):
 
 class thicknessInputSpec(NMRCommandInputSpec):
       gif_segmentation = File(exists=True,
@@ -95,31 +88,63 @@ class gif(NMRCommand):
      output_spec = gifOutputSpec
      
      def _format_arg(self, name, spec, value):
-         if name == 'output_dir':
-             output_dir =  self.inputs.output_dir
-             return  os.path.abspath( output_dir )
-         return super(gif, self)._format_arg(name, spec, value)
+        if name == 'output_dir':
+            output_dir =  self.inputs.output_dir
+            return  os.path.abspath( output_dir )
+        return super(gif, self)._format_arg(name, spec, value)
 
      def _list_outputs(self):
-          outputs = self.output_spec().get()
-          t1 = self.inputs.t1
-          t1_name = t1.split('.')[0]
-          output_dir = self.inputs.output_dir
-          outputs['segmentation_file'] = os.path.abspath(os.path.join(
+        outputs = self.output_spec().get()
+        t1 = self.inputs.t1
+        t1_name = t1.split('.')[0]
+        output_dir = self.inputs.output_dir
+        outputs['segmentation_file'] = os.path.abspath(os.path.join(
                   output_dir, t1_name + '_t1_' + 'NeuroMorph_' +
                   'Segmentation.nii.gz'))
-          outputs['tiv_file'] = os.path.abspath(os.path.join(
+        outputs['tiv_file'] = os.path.abspath(os.path.join(
                   output_dir, t1_name + '_t1_' + 'NeuroMorph_' + 
                   'TIV.nii.gz'))
-          outputs['parcellation_file'] = os.path.abspath(os.path.join(
+        outputs['parcellation_file'] = os.path.abspath(os.path.join(
                   output_dir, t1_name + '_t1_' + 'NeuroMorph_' +
                   'Parcellation.nii.gz'))
-          outputs['Cerebellum_file'] = os.path.abspath(os.path.join(
+        outputs['Cerebellum_file'] = os.path.abspath(os.path.join(
                   output_dir, t1_name + '_t1_' + 'Cerebellum.nii.gz' ))
-          outputs[ 'priors' ] = os.path.abspath(os.path.join(output_dir,
+        outputs[ 'priors' ] = os.path.abspath(os.path.join(output_dir,
                   t1_name + '_t1_' + 'NeuroMorph_prior.nii.gz' ))
-          outputs[ 'bias_corrected' ] = os.path.abspath(os.path.join(output_dir,
+        outputs[ 'bias_corrected' ] = os.path.abspath(os.path.join(output_dir,
                   t1_name + '_t1_' + 'NeuroMorph_BiasCorrected.nii.gz' ))
-          outputs['Brain_file'] = os.path.abspath(os.path.join(output_dir,
+        outputs['Brain_file'] = os.path.abspath(os.path.join(output_dir,
                   output_dir, t1_name + '_t1_' + 'NeuroMorph_Brain.nii.gz'))
-          return outputs
+        return outputs
+#/home/aeshaghi/scripts/segment_lesion.sh /cluster/project0/MS_LATA/fourd/patients/ROME_045/baseline_flair.nii.gz /cluster/project0/MS_LATA/fourd/patients/ROME_045/baseline_flair_lesion.nii.gz
+class segmentLesionInputSpec( NMRCommandInputSpec ):
+     flair = File(exists = True, position = 0, desc = 'flair',
+                          argstr = "%s", mandatory = True)
+     flair_lesion = File(argstr = "%s", position = 1, genfile = True,
+                          hash_files = False,
+                          desc = "flair segmented lesion")
+class segmentLesionOutputSpec( TraitedSpec ):
+     flair_lesion = File(exists = True, 
+                          desc = 'generated lesion mask')
+class segmentLesion( NMRCommand ):
+     """
+     flair lesion segmentaion, only set input flair and leave flair lesion to
+     the program to define
+     """
+
+     _cmd = "/home/aeshaghi/scripts/segment_lesion.sh"
+     input_spec = segmentLesionInputSpec
+     output_spec = segmentLesionOutputSpec
+     def _format_arg(self, name, spec, value):
+        if name == 'flair':
+            flair = self.inputs.flair
+            return os.path.abspath( flair )
+        elif name == 'flair_lesion':
+            flair_lesion = os.path.abspath('flair_lesion.nii.gz')
+            return flair_lesion
+        return super(segmentLesion, self)._format_arg(name, spec, value)
+
+     def _list_outputs(self):
+        outputs = self.output_spec().get()
+        outputs['flair_lesion'] = os.path.abspath('flair_lesion.nii.gz')
+        return outputs
