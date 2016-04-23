@@ -117,8 +117,11 @@ brain_steps_baseline.inputs.steps_mask = 'brain_steps_baseline_mask.nii.gz'
 brain_steps_fu1.inputs.steps_mask = 'brain_steps_fu1_mask.nii.gz'
 
 
-
-
+#data sink to conserve within-subject template otherwise it is deleted
+datasink = pe.Node(nio.DataSink(), name='sinker')
+datasink.inputs.base_directory = '/cluster/project0/MS_LATA/fourd/working/nipype/second_wave/'
+workflow.connect(infosource, 'subject_id', datasink, 'container')
+workflow.connect(robust_template_maker, 'template', datasink, 'within_subject_template')
 
 workflow.connect([
                   (infosource, file_selector,
