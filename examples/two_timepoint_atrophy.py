@@ -22,7 +22,8 @@ from nipype.interfaces.nmr.utils import gif
 import nipype.pipeline.engine as pe
 import nipype.interfaces.io as nio
 import nipype.interfaces.utility as util
-
+from nipype.interfaces.nmr.utils import ct_qa_unified
+from nipype.interfaces.nmr.utils import calculateCTVol
 
 subject_list = ['{subject_id_to_replace}']
 workflow = pe.Workflow(name = 'second_wave')
@@ -116,112 +117,177 @@ brain_steps_fu1 = pe.Node(interface =  steps(),
 brain_steps_baseline.inputs.steps_mask = 'brain_steps_baseline_mask.nii.gz'
 brain_steps_fu1.inputs.steps_mask = 'brain_steps_fu1_mask.nii.gz'
 
+#check segmentation and CT estimation with 
+baseline_ct_qa = pe.Node(interface = ct_qa_unified(),
+                name = 'baseline_ct_qa')
+baseline_ct_qa.inputs.output_dir = 'output_dir'
+
+fu1_ct_qa = pe.Node(interface = ct_qa_unified(),
+                name = 'fu1_ct_qa')
+fu1_ct_qa.inputs.output_dir = 'output_dir'
+
+#calculate volumes
+baseline_cal_vol = pe.Node(interface = calculateCTVol(),
+                name = 'baseline_cal_vol')
+baseline_cal_vol.inputs.summary_csv_file = 'summary.csv'
+
+fu1_cal_vol = pe.Node(interface = calculateCTVol(),
+                name = 'fu1_cal_vol')
+fu1_cal_vol.inputs.summary_csv_file = 'summary.csv'
+
 
 #data sink to conserve within-subject template otherwise it is deleted
 datasink = pe.Node(nio.DataSink(), name='sinker')
 datasink.inputs.base_directory = '/cluster/project0/MS_LATA/fourd/working/nipype/second_wave/'
 workflow.connect(infosource, 'subject_id', datasink, 'container')
 workflow.connect(robust_template_maker, 'template', datasink, 'within_subject_template')
+workflow.connect(baseline_cal_vol, 'summary_csv_file', datasink, 'baseline')
+
 
 workflow.connect([
-                  (infosource, file_selector,
-                   [('subject_id','subject_id')]
-                  )
-                 ,
+                (infosource, file_selector,
+                [('subject_id','subject_id')]
+                ),
                 (file_selector, bet_baseline,
-                  [('baseline_t1', 'in_file' )]
-                 ),
-                 (file_selector, bet_fu1,
-                 [( 'fu1_t1', 'in_file' )]
-                 ),
-                ( file_selector, n4_baseline,
-                  [( 'baseline_t1', 'input_image')]
-                  ),
-                ( bet_baseline, n4_baseline,
+                [('baseline_t1', 'in_file' )]
+                ),
+                (file_selector, bet_fu1,
+                [( 'fu1_t1', 'in_file' )]
+                ),
+                (file_selector, n4_baseline,
+                [( 'baseline_t1', 'input_image')]
+                ),
+                (bet_baseline, n4_baseline,
                 [( 'mask_file', 'mask_image' )]
                 ),
-                  (file_selector, n4_fu1,
-                   [( 'fu1_t1' , 'input_image' )]
-                   ),
-                  ( bet_fu1, n4_fu1,
-                  [( 'mask_file', 'mask_image')]
-                  ),
-                 (file_selector, regt2t1_baseline,
-                   [('baseline_t2','in_file')]
-                    ),
-                 (n4_baseline, regt2t1_baseline,
-                  [('output_image', 'reference')]
-                  ),
-                  (file_selector, regt2t1_fu1,
-                  [('fu1_t2', 'in_file')]
-                  ),
-                  (n4_fu1, regt2t1_fu1,
-                   [('output_image', 'reference')]
-                   ),
-                 (regt2t1_baseline, regt2maskt1_baseline,
-                  [('out_matrix_file', 'in_matrix_file')]
-                  ),
-                  (n4_baseline, regt2maskt1_baseline,
-                  [('output_image', 'reference')]
-                  ),
-                  (file_selector, regt2maskt1_baseline,
-                   [( 'baseline_t2_lesion', 'in_file' )]
-                   ),
-                  (regt2t1_fu1, regt2maskt1_fu1,
-                  [('out_matrix_file', 'in_matrix_file')]
-                  ),
-                  (file_selector, regt2maskt1_fu1,
-                  [('fu1_t2_lesion', 'in_file')]
-                  ),
-                  (n4_fu1, regt2maskt1_fu1,
-                  [('output_image', 'reference')]
-                  ),
-                 ( regt2maskt1_baseline, binarise_baseline,
-                  [( 'out_file', 'in_file' )]
-                  ),
-                  ( regt2maskt1_fu1, binarise_fu1,
-                  [( 'out_file', 'in_file')]
-                  ),
-                    ( binarise_baseline,lesion_filler_baseline,
-                  [('out_file', 'lesion_mask')]
-                   ),
-                  ( n4_baseline, lesion_filler_baseline,
-                  [('output_image', 'in_file')]
-                  ),
-                  (binarise_fu1, lesion_filler_fu1,
-                  [('out_file', 'lesion_mask')]
-                  ),
-                  (n4_fu1, lesion_filler_fu1,
-                  [('output_image', 'in_file')]
-                  )
-                  ,
-                  ( lesion_filler_baseline, lister_node,
-                  [( 'out_file', 'volume_baseline' )]
-                  ),
-                  ( lesion_filler_fu1, lister_node,
-                  [( 'out_file', 'volume_fu1')]
-                  ),
-                    ( lister_node, robust_template_maker,
-                   [('volume_list', 'moving_volumes')]
-                    ),
-                    ( robust_template_maker, robust_output_baseline_node,
-                   [( 'moved_images', 'volume_list' )]
-                    ),
-                    ( robust_template_maker, robust_output_fu1_node,
-                   [( 'moved_images', 'volume_list' )]
-                  ),
-                 ( robust_output_baseline_node, gif_baseline,
-                  [( 'volume_baseline', 't1')]
-                  ),
-                  (robust_output_fu1_node, gif_fu1,
-                  [( 'volume_fu1', 't1' )]
-                  ),
-                    ( robust_output_baseline_node, brain_steps_baseline,
-                   [('volume_baseline', 't1' )]
-                  ),
-                  (robust_output_fu1_node, brain_steps_fu1,
-                  [( 'volume_fu1', 't1' )]
-                  )
-                  ])
-
+                (file_selector, n4_fu1,
+                [( 'fu1_t1' , 'input_image' )]
+                ),
+                ( bet_fu1, n4_fu1,
+                [( 'mask_file', 'mask_image')]
+                ),
+                (file_selector, regt2t1_baseline,
+                [('baseline_t2','in_file')]
+                ),
+                (n4_baseline, regt2t1_baseline,
+                [('output_image', 'reference')]
+                ),
+                (file_selector, regt2t1_fu1,
+                [('fu1_t2', 'in_file')]
+                ),
+                (n4_fu1, regt2t1_fu1,
+                [('output_image', 'reference')]
+                ),
+                (regt2t1_baseline, regt2maskt1_baseline,
+                [('out_matrix_file', 'in_matrix_file')]
+                ),
+                (n4_baseline, regt2maskt1_baseline,
+                [('output_image', 'reference')]
+                ),
+                (file_selector, regt2maskt1_baseline,
+                [( 'baseline_t2_lesion', 'in_file' )]
+                ),
+                (regt2t1_fu1, regt2maskt1_fu1,
+                [('out_matrix_file', 'in_matrix_file')]
+                ),
+                (file_selector, regt2maskt1_fu1,
+                [('fu1_t2_lesion', 'in_file')]
+                ),
+                (n4_fu1, regt2maskt1_fu1,
+                [('output_image', 'reference')]
+                ),
+                (regt2maskt1_baseline, binarise_baseline,
+                [( 'out_file', 'in_file' )]
+                ),
+                (regt2maskt1_fu1, binarise_fu1,
+                [( 'out_file', 'in_file')]
+                ),
+                (binarise_baseline,lesion_filler_baseline,
+                [('out_file', 'lesion_mask')]
+                ),
+                (n4_baseline, lesion_filler_baseline,
+                [('output_image', 'in_file')]
+                ),
+                (binarise_fu1, lesion_filler_fu1,
+                [('out_file', 'lesion_mask')]
+                ),
+                (n4_fu1, lesion_filler_fu1,
+                [('output_image', 'in_file')]
+                ),
+                (lesion_filler_baseline, lister_node,
+                [( 'out_file', 'volume_baseline' )]
+                ),
+                ( lesion_filler_fu1, lister_node,
+                [( 'out_file', 'volume_fu1')]
+                ),
+                (lister_node, robust_template_maker,
+                [('volume_list', 'moving_volumes')]
+                ),
+                (robust_template_maker, robust_output_baseline_node,
+                [('moved_images', 'volume_list' )]
+                ),
+                (robust_template_maker, robust_output_fu1_node,
+                [( 'moved_images', 'volume_list' )]
+                ),
+                ( robust_output_baseline_node, gif_baseline,
+                [( 'volume_baseline', 't1')]
+                ),
+                (robust_output_fu1_node, gif_fu1,
+                [( 'volume_fu1', 't1' )]
+                ),
+                (robust_output_baseline_node, brain_steps_baseline,
+                [('volume_baseline', 't1' )]
+                ),
+                (robust_output_fu1_node, brain_steps_fu1,
+                [( 'volume_fu1', 't1' )]
+                ),
+                (gif_baseline, baseline_ct_qa,
+                [( 'parcellation_file', 'gif_parcellation' )]
+                ),
+                (gif_fu1, fu1_ct_qa,
+                [('parcellation_file', 'gif_parcellation')]
+                ),
+                (gif_baseline, baseline_ct_qa,
+                [('segmentation_file', 'gif_segmentation' )]
+                ),
+                (gif_fu1, fu1_ct_qa,
+                [('segmentation_file', 'gif_segmentation' )]
+                ),
+                (brain_steps_baseline, baseline_ct_qa,
+                [('steps_mask' , 'steps_mask' )]
+                ),
+                (brain_steps_fu1, fu1_ct_qa,
+                [('steps_mask' , 'steps_mask' )]
+                ),
+                (robust_output_baseline_node, baseline_ct_qa,
+                [('volume_baseline', 't1_gif_space' )]
+                ),
+                (robust_output_fu1_node, fu1_ct_qa,
+                [('volume_fu1', 't1_gif_space' )]
+                ),
+                (baseline_ct_qa, baseline_cal_vol,
+                [(gif_parcellation_steps_masked, parcellation_steps_multiplied)]
+                ),
+                (fu1_ct_qa, fu1_cal_vol,
+                [(gif_parcellation_steps_masked, parcellation_steps_multiplied)]
+                ),
+                (gif_baseline, baseline_cal_vol,
+                [('segmentation_file', 'gif_segmentation')]
+                ),
+                (gif_fu1, fu1_cal_vol,
+                [('segmentation_file', 'gif_segmentation')]
+                ),
+                (baseline_ct_qa, baseline_cal_vol,
+                [('cortical_thickness_file', 'cortical_thickness_file')]
+                ),
+                (fu1_ct_qa, fu1_cal_vol,
+                [('cortical_thickness_file', 'cortical_thickness_file')]
+                ),
+                (gif_baseline, baseline_cal_vol,
+                [('tiv_file', 'TIV_file')]
+                ),
+                (gif_fu1, fu1_cal_vol,
+                [('tiv_file', 'TIV_file')]
+                )
+                ])
 workflow.run()

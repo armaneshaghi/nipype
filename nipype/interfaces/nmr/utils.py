@@ -186,6 +186,7 @@ class ct_qa_unified( NMRCommand ):
                     output_dir, 'ct.nii.gz'))
             outputs['gif_parcellation_steps_masked'] = os.path.abspath(os.path.join(
                     output_dir, 'gif_parcellation_steps.nii.gz'))
+            return outputs
 
 #/home/aeshaghi/scripts/calculateCTVol.py -p /cluster/project0/MS_LATA/fourd/working/gif/AMSTERDAM_4001/baseline/resampled_baseline_NeuroMorph_Parcellation_steps.nii.gz -s /cluster/project0/MS_LATA/fourd/working/gif/AMSTERDAM_4001/baseline/resampled_baseline_NeuroMorph_Segmentation.nii.gz -c /cluster/project0/MS_LATA/fourd/working/gif/AMSTERDAM_4001/baseline/ct.nii.gz -t /cluster/project0/MS_LATA/fourd/working/gif/AMSTERDAM_4001/baseline/resampled_baseline_NeuroMorph_TIV.nii.gz -o /cluster/project0/MS_LATA/fourd/working/gif/AMSTERDAM_4001/baseline/summary.csv
 
@@ -222,6 +223,7 @@ class calculateCTVol( NMRCommand ):
         outputs = self.output_spec().get()
         summary_csv_file = self.inputs.summary_csv_file
         outputs['summary_csv_file'] = os.path.abspath( 'summary.csv'  )
+        return outputs
 
     
 
