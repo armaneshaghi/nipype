@@ -148,3 +148,80 @@ class segmentLesion( NMRCommand ):
         outputs = self.output_spec().get()
         outputs['flair_lesion'] = os.path.abspath('flair_lesion.nii.gz')
         return outputs
+#/home/aeshaghi/scripts/ct_qa_unified.sh <t1_gif_space> <gif_segmentation> <gif_parcellation> <steps_mask> <output_dir>
+class ct_qa_unifiedInputSpec( NMRCommandInputSpec ):
+        t1_gif_space = File(exists = True, argstr = '%s', position = 0, 
+                        desc = 'bias corrected T1 image, in the same space as GIF parcellation')
+        gif_segmentation = File(exists = True, argstr = '%s',position = 1,
+                desc = 'gif segmentation, which is multi-volume')
+        gif_parcellation = File(exists = True, argstr = '%s',position = 2,
+                desc = 'gif parcellation')
+        steps_mask = File(exists = True, argstr = '%s',position = 3,
+                desc = 'steps mask')
+        output_dir = traits.String(argstr = '%s', position = 4, 
+                      mandatory = False)
+
+class ct_qa_unifiedOutputSpec( TraitedSpec ):
+        cortical_thickness_file = File(exists = True,
+                desc = 'cortical thickness file from KellyKapowski')
+        gif_parcellation_steps_masked = File(exists = True,
+                desc = 
+                'parcellation from gif, which has been multiplied by steps mask to remove extra tissues')
+
+class ct_qa_unified( NMRCommand ):
+        _cmd = '/home/aeshaghi/scripts/ct_qa_unified.sh'
+        input_spec = ct_qa_unifiedInputSpec
+        output_spec = ct_qa_unifiedOutputSpec
+
+        def _format_arg(self, name, spec, value):
+            if name == 'output_dir': 
+                output_dir = self.inputs.output_dir
+                return  os.path.abspath( output_dir )
+            return super(ct_qa_unified, self)._format_arg(name, spec, value)
+
+        def _list_outputs(self):
+            outputs = self.output_spec().get()
+            output_dir = self.inputs.output_dir
+            outputs['cortical_thickness_file'] = os.path.abspath(os.path.join(
+                    output_dir, 'ct.nii.gz'))
+            outputs['gif_parcellation_steps_masked'] = os.path.abspath(os.path.join(
+                    output_dir, 'gif_parcellation_steps.nii.gz'))
+
+#/home/aeshaghi/scripts/calculateCTVol.py -p /cluster/project0/MS_LATA/fourd/working/gif/AMSTERDAM_4001/baseline/resampled_baseline_NeuroMorph_Parcellation_steps.nii.gz -s /cluster/project0/MS_LATA/fourd/working/gif/AMSTERDAM_4001/baseline/resampled_baseline_NeuroMorph_Segmentation.nii.gz -c /cluster/project0/MS_LATA/fourd/working/gif/AMSTERDAM_4001/baseline/ct.nii.gz -t /cluster/project0/MS_LATA/fourd/working/gif/AMSTERDAM_4001/baseline/resampled_baseline_NeuroMorph_TIV.nii.gz -o /cluster/project0/MS_LATA/fourd/working/gif/AMSTERDAM_4001/baseline/summary.csv
+
+class calculateCTVolInputSpec( NMRCommandInputSpec ):
+    parcellation_steps_multiplied = File(exists = True, position = 0,
+            argstr = '-p %s',
+            mandatory = True, desc = 'gif pacellation that has been multiplied with steps mask')
+    gif_segmentation = File(exists = True, position = 1,
+            argstr = '-s %s',
+            mandatory = True, desc = 'gif segmentation, which is multi-volume')
+    cortical_thickness_file = File(exists = True, position = 2,
+            argstr = '-c %s', mandatory = True,
+            desc = 'cortical thickness map file from KellyKapowski')
+    TIV_file = File(exists = True, position = 3,
+            argstr = '-t %s', mandatory = True,
+            desc = 'TIV file used for tiv calculation')
+    summary_csv_file = traits.String(argstr = '-o %s',
+            position = 4 )
+class calculateCTVolOutputSpec( TraitedSpec ):
+    summary_csv_file = File(exists = True,
+            desc = 'summary csv file reporting volume and thickness of gif')
+class calculateCTVol( NMRCommand ):
+    _cmd = '/home/aeshaghi/scripts/calculateCTVol.py'
+    input_spec = calculateCTVolInputSpec
+    output_spec = calculateCTVolOutputSpec
+
+    def _format_arg(self, name, spec, value):
+        if name == 'summary_csv_file':
+            summary_csv_file =  self.inputs.summary_csv_file
+            return  '-o ' + os.path.abspath( 'summary.csv' )
+        return super(calculateCTVol, self)._format_arg(name, spec, value)
+
+    def _list_outputs(self):
+        outputs = self.output_spec().get()
+        summary_csv_file = self.inputs.summary_csv_file
+        outputs['summary_csv_file'] = os.path.abspath( 'summary.csv'  )
+
+    
+
