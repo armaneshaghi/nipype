@@ -88,6 +88,23 @@ brain_steps_fu1 = pe.Node(interface =  steps(),
 brain_steps_baseline.inputs.steps_mask = 'brain_steps_baseline_mask.nii.gz'
 brain_steps_fu1.inputs.steps_mask = 'brain_steps_fu1_mask.nii.gz'
 
+#check segmentation and CT estimation with 
+baseline_ct_qa = pe.Node(interface = ct_qa_unified(),
+                name = 'baseline_ct_qa')
+baseline_ct_qa.inputs.output_dir = 'output_dir'
+
+fu1_ct_qa = pe.Node(interface = ct_qa_unified(),
+                name = 'fu1_ct_qa')
+fu1_ct_qa.inputs.output_dir = 'output_dir'
+
+#calculate volumes
+baseline_cal_vol = pe.Node(interface = calculateCTVol(),
+                name = 'baseline_cal_vol')
+baseline_cal_vol.inputs.summary_csv_file = 'summary.csv'
+
+fu1_cal_vol = pe.Node(interface = calculateCTVol(),
+                name = 'fu1_cal_vol')
+fu1_cal_vol.inputs.summary_csv_file = 'summary.csv'
 
 #data sink to conserve within-subject template otherwise it is deleted
 datasink = pe.Node(nio.DataSink(), name='sinker')
@@ -96,55 +113,107 @@ workflow.connect(infosource, 'subject_id', datasink, 'container')
 workflow.connect(robust_template_maker, 'template', datasink, 'within_subject_template')
 
 workflow.connect([
-                  (infosource, file_selector,
+                   (infosource, file_selector,
                    [('subject_id','subject_id')]
-                  )
-                 ,
-                (file_selector, bet_baseline,
-                  [('baseline_t1', 'in_file' )]
-                 ),
-                 (file_selector, bet_fu1,
-                 [( 'fu1_t1', 'in_file' )]
-                 ),
-                ( file_selector, n4_baseline,
-                  [( 'baseline_t1', 'input_image')]
-                  ),
-                ( bet_baseline, n4_baseline,
-                [( 'mask_file', 'mask_image' )]
-                ),
-                  (file_selector, n4_fu1,
+                   ),
+                   (file_selector, bet_baseline,
+                   [('baseline_t1', 'in_file' )]
+                   ),
+                   (file_selector, bet_fu1,
+                   [( 'fu1_t1', 'in_file' )]
+                   ),
+                   (file_selector, n4_baseline,
+                   [( 'baseline_t1', 'input_image')]
+                   ),
+                   (bet_baseline, n4_baseline,
+                   [('mask_file', 'mask_image' )]
+                   ),
+                   (file_selector, n4_fu1,
                    [( 'fu1_t1' , 'input_image' )]
                    ),
-                  ( bet_fu1, n4_fu1,
-                  [( 'mask_file', 'mask_image')]
-                  ),
-                  ( n4_baseline, lister_node,
-                  [( 'output_image', 'volume_baseline' )]
-                  ),
-                  ( n4_fu1, lister_node,
-                  [( 'output_image', 'volume_fu1')]
-                  ),
-                    ( lister_node, robust_template_maker,
+                   (bet_fu1, n4_fu1,
+                   [( 'mask_file', 'mask_image')]
+                   ),
+                   (n4_baseline, lister_node,
+                   [( 'output_image', 'volume_baseline' )]
+                   ),
+                   (n4_fu1, lister_node,
+                   [( 'output_image', 'volume_fu1')]
+                   ),
+                   ( lister_node, robust_template_maker,
                    [('volume_list', 'moving_volumes')]
-                    ),
-                    ( robust_template_maker, robust_output_baseline_node,
+                   ),
+                   ( robust_template_maker, robust_output_baseline_node,
                    [( 'moved_images', 'volume_list' )]
-                    ),
-                    ( robust_template_maker, robust_output_fu1_node,
+                   ),
+                   ( robust_template_maker, robust_output_fu1_node,
                    [( 'moved_images', 'volume_list' )]
-                  ),
-                 ( robust_output_baseline_node, gif_baseline,
-                  [( 'volume_baseline', 't1')]
-                  ),
-                  (robust_output_fu1_node, gif_fu1,
-                  [( 'volume_fu1', 't1' )]
-                  ),
-                    ( robust_output_baseline_node, brain_steps_baseline,
+                   ),
+                   (robust_output_baseline_node, gif_baseline,
+                   [( 'volume_baseline', 't1')]
+                   ),
+                   (robust_output_fu1_node, gif_fu1,
+                   [( 'volume_fu1', 't1' )]
+                   ),
+                   ( robust_output_baseline_node, brain_steps_baseline,
                    [('volume_baseline', 't1' )]
-                  ),
-                  (robust_output_fu1_node, brain_steps_fu1,
-                  [( 'volume_fu1', 't1' )]
-                  )
-                  ])
-
+                   ),
+                   (robust_output_fu1_node, brain_steps_fu1,
+                   [( 'volume_fu1', 't1' )]
+                   ),
+                   (gif_baseline, baseline_ct_qa,
+                   [( 'parcellation_file', 'gif_parcellation' )]
+                   ),
+                   (gif_fu1, fu1_ct_qa,
+                   [('parcellation_file', 'gif_parcellation')]
+                   ),
+                   (gif_baseline, baseline_ct_qa,
+                   [('segmentation_file', 'gif_segmentation' )]
+                   ),
+                   (gif_fu1, fu1_ct_qa,
+                   [('segmentation_file', 'gif_segmentation' )]
+                   ),
+                   (brain_steps_baseline, baseline_ct_qa,
+                   [('steps_mask' , 'steps_mask' )]
+                   ),
+                   (brain_steps_fu1, fu1_ct_qa,
+                   [('steps_mask' , 'steps_mask' )]
+                   ),
+                   (robust_output_baseline_node, baseline_ct_qa,
+                   [('volume_baseline', 't1_gif_space' )]
+                   ),
+                   (robust_output_fu1_node, fu1_ct_qa,
+                   [('volume_fu1', 't1_gif_space' )]
+                   ),
+                   (baseline_ct_qa, baseline_cal_vol,
+                   [('gif_parcellation_steps_masked', 'parcellation_steps_multiplied')]
+                   ),
+                   (fu1_ct_qa, fu1_cal_vol,
+                   [('gif_parcellation_steps_masked', 'parcellation_steps_multiplied')]
+                   ),
+                   (gif_baseline, baseline_cal_vol,
+                   [('segmentation_file', 'gif_segmentation')]
+                   ),
+                   (gif_fu1, fu1_cal_vol,
+                   [('segmentation_file', 'gif_segmentation')]
+                   ),
+                   (baseline_ct_qa, baseline_cal_vol,
+                   [('cortical_thickness_file', 'cortical_thickness_file')]
+                   ),
+                   (fu1_ct_qa, fu1_cal_vol,
+                   [('cortical_thickness_file', 'cortical_thickness_file')]
+                   ),
+                   (gif_baseline, baseline_cal_vol,
+                   [('tiv_file', 'TIV_file')]
+                   ),
+                   (gif_fu1, fu1_cal_vol,
+                   [('tiv_file', 'TIV_file')]
+                   ),
+                   (baseline_cal_vol, datasink,
+                   [('summary_csv_file', 'baseline')]
+                   ),
+                   (fu1_cal_vol, datasink,
+                   [('summary_csv_file', 'fu1' )]
+                   )
+                   ])
 workflow.run()

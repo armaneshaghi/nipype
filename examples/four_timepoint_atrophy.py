@@ -44,6 +44,9 @@ templates = {{
             "fu2_t1" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu2_t1_nii_gz}' ,
             "fu2_t2" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu2_t2_nii_gz}',
             "fu2_t2_lesion" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu2_t2_lesion_mask_nii_gz}',
+            "fu3_t1" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu3_t1_nii_gz}' ,
+            "fu3_t2" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu3_t2_nii_gz}',
+            "fu3_t2_lesion" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu3_t2_lesion_mask_nii_gz}',
             }}
 
 file_selector = pe.Node( SelectFiles(templates), "selectfiles") 
@@ -59,16 +62,24 @@ bet_fu2 = pe.Node(name = 'bet_fu2',
                      interface = BET() )
 bet_fu2.inputs.mask = True
 
+bet_fu3 = pe.Node(name = 'bet_fu3',
+                                     interface = BET() )
+bet_fu3.inputs.mask = True
+
 n4_baseline = pe.Node(name = 'n4_baseline', interface = N4BiasFieldCorrection())
 n4_fu1 = pe.Node(name = 'n4_fu1', interface = N4BiasFieldCorrection() )
 n4_fu2 = pe.Node(name = 'n4_fu2', interface = N4BiasFieldCorrection() )
+n4_fu3 = pe.Node(name = 'n4_fu3', interface = N4BiasFieldCorrection() )
 n4_baseline.inputs.dimension = 3
 n4_fu1.inputs.dimension = 3
 n4_fu2.inputs.dimension = 3
+n4_fu3.inputs.dimension = 3
 
 regt2t1_baseline = pe.Node(interface = FLIRT(), name = 't2t1_baseline')
 regt2t1_fu1 = pe.Node(interface = FLIRT(), name = 't2t1_fu1')
 regt2t1_fu2 = pe.Node(interface = FLIRT(), name = 't2t1_fu2')
+regt2t1_fu3 = pe.Node(interface = FLIRT(), name = 't2t1_fu3')
+
 regt2maskt1_baseline = pe.Node(interface = ApplyXfm(), 
                               name = 't2maskt1_baseline')
 regt2maskt1_baseline.inputs.apply_xfm = True
@@ -79,6 +90,11 @@ regt2maskt1_fu1.inputs.apply_xfm = True
 regt2maskt1_fu2 = pe.Node(interface = ApplyXfm(),
                              name = 't2maskt1_fu2')
 regt2maskt1_fu2.inputs.apply_xfm = True
+
+regt2maskt1_fu3 = pe.Node(interface = ApplyXfm(),
+                                             name = 't2maskt1_fu3')
+regt2maskt1_fu3.inputs.apply_xfm = True
+
 
 binarise_baseline = pe.Node(interface = UnaryMaths(),
                            name = 'binarise_baseline')
@@ -94,6 +110,13 @@ binarise_fu2 = pe.Node(interface = UnaryMaths(),
 
 binarise_fu2.inputs.operation = 'bin'
 
+binarise_fu3 = pe.Node(interface = UnaryMaths(),
+                                           name = 'binarise_fu3')
+
+binarise_fu3.inputs.operation = 'bin'
+
+
+
 lesion_filler_baseline = pe.Node(interface = lesion_filling(), 
                       name = 'lesion_filler_baseline')
 lesion_filler_fu1 = pe.Node(interface = lesion_filling(),
@@ -102,22 +125,31 @@ lesion_filler_fu1 = pe.Node(interface = lesion_filling(),
 lesion_filler_fu2 = pe.Node(interface = lesion_filling(),
                                name = 'lesion_filler_fu2')
 
+lesion_filler_fu3 = pe.Node(interface = lesion_filling(),
+                                               name = 'lesion_filler_fu3')
 
-def lister(volume_baseline, volume_fu1, volume_fu2):
-    return [volume_baseline, volume_fu1, volume_fu2]
+
+def lister(volume_baseline, volume_fu1, volume_fu2, volume_fu3):
+    return [volume_baseline, volume_fu1, volume_fu2, volume_fu3]
+
 lister_node = pe.Node(name = 'lister_node' , 
                      interface = Function(input_names = ['volume_baseline', 
                                                         'volume_fu1', 
-                                                        'volume_fu2'],
+                                                        'volume_fu2',
+                                                        'volume_fu3'
+                                                        ],
                                          output_names = ['volume_list'],
                                       function = lister))
+
 robust_template_maker = pe.Node(interface = mri_robust_template(),
                                name = 'mri_robust_template_maker'
                                )
 robust_template_maker.inputs.template = 'within_sub.nii.gz'
 robust_template_maker.inputs.moved_images = ['moved2template_baseline.nii.gz',
                                             'moved2template_fu1.nii.gz',
-                                            'moved2template_fu2.nii.gz']
+                                            'moved2template_fu2.nii.gz',
+                                            'moved2template_fu3.nii.gz',
+                                             ]
 def return_baseline(volume_list):
     return volume_list[0]
 
@@ -126,6 +158,9 @@ def return_fu1(volume_list):
 
 def return_fu2(volume_list):
     return volume_list[2]
+
+def return_fu3(volume_list):
+            return volume_list[3]
 
 robust_output_baseline_node = pe.Node(name = 'robust_output_baseline', 
                      interface = Function(input_names = ['volume_list'],
@@ -143,6 +178,14 @@ robust_output_fu2_node = pe.Node(name = 'robust_output_fu2',
                                           output_names = ['volume_fu2'],
                                           function = return_fu2
                                          ))
+
+robust_output_fu3_node = pe.Node(name = 'robust_output_fu3',
+                     interface = Function(input_names = ['volume_list'],
+                                          output_names = ['volume_fu3'],
+                                          function = return_fu3
+                                         ))
+
+
 gif_baseline = pe.Node(interface = gif(),
                       name = 'gif_baseline')
 gif_baseline.inputs.output_dir = 'gif_output'
@@ -154,6 +197,10 @@ gif_fu2 = pe.Node(interface = gif(),
                      name = 'gif_fu2')
 gif_fu2.inputs.output_dir = 'gif_output'
 
+gif_fu3 = pe.Node(interface = gif(),
+                     name = 'gif_fu3')
+gif_fu3.inputs.output_dir = 'gif_output'
+
 brain_steps_baseline = pe.Node(interface = steps(),
                      name = 'brain_steps_baseline')
 brain_steps_fu1 = pe.Node(interface =  steps(),
@@ -161,9 +208,13 @@ brain_steps_fu1 = pe.Node(interface =  steps(),
 brain_steps_fu2 = pe.Node(interface =  steps(),
                               name = 'brain_steps_fu2')
 
+brain_steps_fu3 = pe.Node(interface =  steps(),
+                              name = 'brain_steps_fu3')
+
 brain_steps_baseline.inputs.steps_mask = 'brain_steps_baseline_mask.nii.gz'
 brain_steps_fu1.inputs.steps_mask = 'brain_steps_fu1_mask.nii.gz'
 brain_steps_fu2.inputs.steps_mask = 'brain_steps_fu2_mask.nii.gz'
+brain_steps_fu3.inputs.steps_mask = 'brain_steps_fu3_mask.nii.gz'
 
 #check segmentation and CT estimation with 
 baseline_ct_qa = pe.Node(interface = ct_qa_unified(),
@@ -178,6 +229,10 @@ fu2_ct_qa = pe.Node(interface = ct_qa_unified(),
                 name = 'fu2_ct_qa')
 fu2_ct_qa.inputs.output_dir = 'output_dir'
 
+fu3_ct_qa = pe.Node(interface = ct_qa_unified(),
+                name = 'fu3_ct_qa')
+fu3_ct_qa.inputs.output_dir = 'output_dir'
+
 #calculate volumes
 baseline_cal_vol = pe.Node(interface = calculateCTVol(),
                 name = 'baseline_cal_vol')
@@ -190,6 +245,11 @@ fu1_cal_vol.inputs.summary_csv_file = 'summary.csv'
 fu2_cal_vol = pe.Node(interface = calculateCTVol(),
                 name = 'fu2_cal_vol')
 fu2_cal_vol.inputs.summary_csv_file = 'summary.csv'
+
+fu3_cal_vol = pe.Node(interface = calculateCTVol(),
+                name = 'fu3_cal_vol')
+fu3_cal_vol.inputs.summary_csv_file = 'summary.csv'
+
 #data sink to conserve within-subject template otherwise it is deleted
 
 datasink = pe.Node(nio.DataSink(), name='sinker')
@@ -210,6 +270,9 @@ workflow.connect([
                   (file_selector, bet_fu2,
                   [( 'fu2_t1', 'in_file' )]
                   ),
+                  (file_selector, bet_fu3,
+                  [( 'fu3_t1', 'in_file' )]
+                  ),
                   (file_selector, n4_baseline,
                   [('baseline_t1', 'input_image')]
                   ),
@@ -228,6 +291,12 @@ workflow.connect([
                   (bet_fu2, n4_fu2,
                   [('mask_file', 'mask_image')]
                   ),
+                  (file_selector, n4_fu3,
+                  [( 'fu3_t1' , 'input_image' )]
+                  ),
+                  (bet_fu3, n4_fu3,
+                  [('mask_file', 'mask_image')]
+                  ),
                   (file_selector, regt2t1_baseline,
                   [('baseline_t2','in_file')]
                   ),
@@ -244,6 +313,12 @@ workflow.connect([
                   [('fu2_t2', 'in_file')]
                   ),
                   (n4_fu2, regt2t1_fu2,
+                  [('output_image', 'reference')]
+                  ),
+                  (file_selector, regt2t1_fu3,
+                  [('fu3_t2', 'in_file')]
+                  ),
+                  (n4_fu3, regt2t1_fu3,
                   [('output_image', 'reference')]
                   ),
                   (regt2t1_baseline, regt2maskt1_baseline,
@@ -273,6 +348,15 @@ workflow.connect([
                   (n4_fu2, regt2maskt1_fu2,
                   [('output_image', 'reference')]
                   ),
+                  (regt2t1_fu3, regt2maskt1_fu3,
+                  [('out_matrix_file', 'in_matrix_file')]
+                  ),
+                  (file_selector, regt2maskt1_fu3,
+                  [('fu3_t2_lesion', 'in_file')]
+                  ),
+                  (n4_fu3, regt2maskt1_fu3,
+                  [('output_image', 'reference')]
+                  ),
                   (regt2maskt1_baseline, binarise_baseline,
                   [( 'out_file', 'in_file' )]
                   ),
@@ -300,6 +384,12 @@ workflow.connect([
                   (n4_fu2, lesion_filler_fu2,
                   [('output_image', 'in_file')]
                   ),
+                  (binarise_fu3, lesion_filler_fu3,
+                  [('out_file', 'lesion_mask')]
+                  ),
+                  (n4_fu3, lesion_filler_fu3,
+                  [('output_image', 'in_file')]
+                  ),
                   (lesion_filler_baseline, lister_node,
                   [('out_file', 'volume_baseline' )]
                   ),
@@ -308,6 +398,9 @@ workflow.connect([
                   ),
                   (lesion_filler_fu2, lister_node,
                   [('out_file', 'volume_fu2)]
+                  ),
+                  (lesion_filler_fu3, lister_node,
+                  [('out_file', 'volume_fu3)]
                   ),
                   ( lister_node, robust_template_maker,
                   [('volume_list', 'moving_volumes')]
@@ -321,6 +414,9 @@ workflow.connect([
                   ( robust_template_maker, robust_output_fu2_node,
                   [( 'moved_images', 'volume_list' )]
                   ),
+                  (robust_template_maker, robust_output_fu3_node,
+                  [( 'moved_images', 'volume_list' )]
+                  ),
                   (robust_output_baseline_node, gif_baseline,
                   [( 'volume_baseline', 't1')]
                   ),
@@ -329,6 +425,9 @@ workflow.connect([
                   ),
                   (robust_output_fu2_node, gif_fu2,
                   [( 'volume_fu2', 't1' )]
+                  ),
+                  (robust_output_fu3_node, gif_fu3,
+                  [( 'volume_fu3', 't1' )]
                   ),
                   ( robust_output_baseline_node, brain_steps_baseline,
                   [('volume_baseline', 't1' )]
@@ -339,6 +438,9 @@ workflow.connect([
                   (robust_output_fu2_node, brain_steps_fu2,
                   [( 'volume_fu2', 't1' )]
                   ),
+                  (robust_output_fu3_node, brain_steps_fu3,
+                  [( 'volume_fu3', 't1' )]
+                  ),
                   (gif_baseline, baseline_ct_qa,
                   [( 'parcellation_file', 'gif_parcellation' )]
                   ),
@@ -348,6 +450,9 @@ workflow.connect([
                   (gif_fu2, fu2_ct_qa,
                   [('parcellation_file', 'gif_parcellation')]
                   ),
+                  (gif_fu3, fu3_ct_qa,
+                  [('parcellation_file', 'gif_parcellation')]
+                  ),
                   (gif_baseline, baseline_ct_qa,
                   [('segmentation_file', 'gif_segmentation' )]
                   ),
@@ -355,6 +460,9 @@ workflow.connect([
                   [('segmentation_file', 'gif_segmentation' )]
                   ),
                   (gif_fu2, fu2_ct_qa,
+                  [('segmentation_file', 'gif_segmentation' )]
+                  ),
+                  (gif_fu3, fu3_ct_qa,
                   [('segmentation_file', 'gif_segmentation' )]
                   ),
                   (brain_steps_baseline, baseline_ct_qa,
@@ -366,6 +474,9 @@ workflow.connect([
                   (brain_steps_fu2, fu2_ct_qa,
                   [('steps_mask' , 'steps_mask' )]
                   ),
+                  (brain_steps_fu3, fu3_ct_qa,
+                  [('steps_mask' , 'steps_mask' )]
+                  ),
                   (robust_output_baseline_node, baseline_ct_qa,
                   [('volume_baseline', 't1_gif_space' )]
                   ),
@@ -375,6 +486,9 @@ workflow.connect([
                   (robust_output_fu2_node, fu2_ct_qa,
                   [('volume_fu2', 't1_gif_space' )]
                   ),
+                  (robust_output_fu3_node, fu3_ct_qa,
+                  [('volume_fu3', 't1_gif_space' )]
+                  ),
                   (baseline_ct_qa, baseline_cal_vol,
                   [('gif_parcellation_steps_masked', 'parcellation_steps_multiplied')]
                   ),
@@ -382,15 +496,21 @@ workflow.connect([
                   [('gif_parcellation_steps_masked', 'parcellation_steps_multiplied')]
                   ),
                   (fu2_ct_qa, fu2_cal_vol,
+                  [('gif_parcellation_steps_masked', 'parcellation_steps_multiplied')]
+                  ),
+                  (fu3_ct_qa, fu3_cal_vol,
                   [('gif_parcellation_steps_masked', 'parcellation_steps_multiplied')]
                   ),
                   (gif_baseline, baseline_cal_vol,
                   [('segmentation_file', 'gif_segmentation')]
                   ),
-                  (gif_fu1,     fu1_cal_vol,
+                  (gif_fu1, fu1_cal_vol,
                   [('segmentation_file', 'gif_segmentation')]
                   ),
-                  (gif_fu2,     fu2_cal_vol,
+                  (gif_fu2, fu2_cal_vol,
+                  [('segmentation_file', 'gif_segmentation')]
+                  ),
+                  (gif_fu3, fu3_cal_vol,
                   [('segmentation_file', 'gif_segmentation')]
                   ),
                   (baseline_ct_qa, baseline_cal_vol,
@@ -400,6 +520,9 @@ workflow.connect([
                   [('cortical_thickness_file', 'cortical_thickness_file')]
                   ),
                   (fu2_ct_qa, fu2_cal_vol,
+                  [('cortical_thickness_file', 'cortical_thickness_file')]
+                  ),
+                  (fu3_ct_qa, fu3_cal_vol,
                   [('cortical_thickness_file', 'cortical_thickness_file')]
                   ),
                   (gif_baseline, baseline_cal_vol,
@@ -411,6 +534,9 @@ workflow.connect([
                   (gif_fu2, fu2_cal_vol,
                   [('tiv_file', 'TIV_file')]
                   ),
+                  (gif_fu3, fu3_cal_vol,
+                  [('tiv_file', 'TIV_file')]
+                  ),
                   (baseline_cal_vol, datasink,
                   [('summary_csv_file', 'baseline')]
                   ),
@@ -419,6 +545,9 @@ workflow.connect([
                   ),
                   (fu2_cal_vol, datasink,
                   [('summary_csv_file', 'fu2' )]
+                  ),
+                  (fu3_cal_vol, datasink,
+                  [('summary_csv_file', 'fu3' )]
                   )
                   ])
 workflow.run()

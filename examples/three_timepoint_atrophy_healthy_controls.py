@@ -31,7 +31,7 @@ infosource.iterables = ('subject_id', subject_list)
 templates = {{
             "baseline_t1" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{baseline_t1_nii_gz}',
             "fu1_t1" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu1_t1_nii_gz}' ,
-            "fu2_t1" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu1_t1_nii_gz}' ,
+            "fu2_t1" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu2_t1_nii_gz}' ,
                          }}
 
 file_selector = pe.Node( SelectFiles(templates), "selectfiles") 
@@ -81,7 +81,7 @@ def return_baseline(volume_list):
 def return_fu1(volume_list):
     return volume_list[1]
 
-def return_fu1(volume_list):
+def return_fu2(volume_list):
     return volume_list[2]
 
 robust_output_baseline_node = pe.Node(name = 'robust_output_baseline', 
@@ -94,7 +94,7 @@ robust_output_fu1_node = pe.Node(name = 'robust_output_fu1',
                                           output_names = ['volume_fu1'],
                                           function = return_fu1
                                          ))
-robust_output_fu1_node = pe.Node(name = 'robust_output_fu2',
+robust_output_fu2_node = pe.Node(name = 'robust_output_fu2',
                      interface = Function(input_names = ['volume_list'],
                                           output_names = ['volume_fu2'],
                                           function = return_fu2
@@ -123,6 +123,33 @@ brain_steps_fu1.inputs.steps_mask = 'brain_steps_fu1_mask.nii.gz'
 brain_steps_fu2 = pe.Node(interface =  steps(),
                               name = 'brain_steps_fu2')
 brain_steps_fu2.inputs.steps_mask = 'brain_steps_fu2_mask.nii.gz'
+
+
+#check segmentation and CT estimation with 
+baseline_ct_qa = pe.Node(interface = ct_qa_unified(),
+                name = 'baseline_ct_qa')
+baseline_ct_qa.inputs.output_dir = 'output_dir'
+
+fu1_ct_qa = pe.Node(interface = ct_qa_unified(),
+                name = 'fu1_ct_qa')
+fu1_ct_qa.inputs.output_dir = 'output_dir'
+
+fu2_ct_qa = pe.Node(interface = ct_qa_unified(),
+                name = 'fu2_ct_qa')
+fu2_ct_qa.inputs.output_dir = 'output_dir'
+
+#calculate volumes
+baseline_cal_vol = pe.Node(interface = calculateCTVol(),
+                name = 'baseline_cal_vol')
+baseline_cal_vol.inputs.summary_csv_file = 'summary.csv'
+
+fu1_cal_vol = pe.Node(interface = calculateCTVol(),
+                name = 'fu1_cal_vol')
+fu1_cal_vol.inputs.summary_csv_file = 'summary.csv'
+
+fu2_cal_vol = pe.Node(interface = calculateCTVol(),
+                name = 'fu2_cal_vol')
+fu2_cal_vol.inputs.summary_csv_file = 'summary.csv'
 
 #data sink to conserve within-subject template otherwise it is deleted
 datasink = pe.Node(nio.DataSink(), name='sinker')
@@ -180,6 +207,9 @@ workflow.connect([
                     ( robust_template_maker, robust_output_fu1_node,
                    [( 'moved_images', 'volume_list' )]
                   ),
+                    ( robust_template_maker, robust_output_fu2_node,
+                   [( 'moved_images', 'volume_list' )]
+                  ),
                  ( robust_output_baseline_node, gif_baseline,
                   [( 'volume_baseline', 't1')]
                   ),
@@ -197,6 +227,87 @@ workflow.connect([
                   ),
                   (robust_output_fu2_node, brain_steps_fu2,
                   [( 'volume_fu2', 't1' )]
+                  ),
+                  (gif_baseline, baseline_ct_qa,
+                  [( 'parcellation_file', 'gif_parcellation' )]
+                  ),
+                  (gif_fu1, fu1_ct_qa,
+                  [('parcellation_file', 'gif_parcellation')]
+                  ),
+                  (gif_fu2, fu2_ct_qa,
+                  [('parcellation_file', 'gif_parcellation')]
+                  ),
+                  (gif_baseline, baseline_ct_qa,
+                  [('segmentation_file', 'gif_segmentation' )]
+                  ),
+                  (gif_fu1, fu1_ct_qa,
+                  [('segmentation_file', 'gif_segmentation' )]
+                  ),
+                  (gif_fu2, fu2_ct_qa,
+                  [('segmentation_file', 'gif_segmentation' )]
+                  ),
+                  (brain_steps_baseline, baseline_ct_qa,
+                  [('steps_mask' , 'steps_mask' )]
+                  ),
+                  (brain_steps_fu1, fu1_ct_qa,
+                  [('steps_mask' , 'steps_mask' )]
+                  ),
+                  (brain_steps_fu2, fu2_ct_qa,
+                  [('steps_mask' , 'steps_mask' )]
+                  ),
+                  (robust_output_baseline_node, baseline_ct_qa,
+                  [('volume_baseline', 't1_gif_space' )]
+                  ),
+                  (robust_output_fu1_node, fu1_ct_qa,
+                  [('volume_fu1', 't1_gif_space' )]
+                  ),
+                  (robust_output_fu2_node, fu2_ct_qa,
+                  [('volume_fu2', 't1_gif_space' )]
+                  ),
+                  (baseline_ct_qa, baseline_cal_vol,
+                  [('gif_parcellation_steps_masked', 'parcellation_steps_multiplied')]
+                  ),
+                  (fu1_ct_qa, fu1_cal_vol,
+                  [('gif_parcellation_steps_masked', 'parcellation_steps_multiplied')]
+                  ),
+                  (fu2_ct_qa, fu2_cal_vol,
+                  [('gif_parcellation_steps_masked', 'parcellation_steps_multiplied')]
+                  ),
+                  (gif_baseline, baseline_cal_vol,
+                  [('segmentation_file', 'gif_segmentation')]
+                  ),
+                  (gif_fu1, fu1_cal_vol,
+                  [('segmentation_file', 'gif_segmentation')]
+                  ),
+                  (gif_fu2, fu2_cal_vol,
+                  [('segmentation_file', 'gif_segmentation')]
+                  ),
+                  (baseline_ct_qa, baseline_cal_vol,
+                  [('cortical_thickness_file', 'cortical_thickness_file')]
+                  ),
+                  (fu1_ct_qa, fu1_cal_vol,
+                  [('cortical_thickness_file', 'cortical_thickness_file')]
+                  ),
+                  (fu2_ct_qa, fu2_cal_vol,
+                  [('cortical_thickness_file', 'cortical_thickness_file')]
+                  ),
+                  (gif_baseline, baseline_cal_vol,
+                  [('tiv_file', 'TIV_file')]
+                  ),
+                  (gif_fu1, fu1_cal_vol,
+                  [('tiv_file', 'TIV_file')]
+                  ),
+                  (gif_fu2, fu2_cal_vol,
+                  [('tiv_file', 'TIV_file')]
+                  ),
+                  (baseline_cal_vol, datasink,
+                  [('summary_csv_file', 'baseline')]
+                  ),
+                  (fu1_cal_vol, datasink,
+                  [('summary_csv_file', 'fu1' )]
+                  ),
+                  (fu2_cal_vol, datasink,
+                  [('summary_csv_file', 'fu2' )]
                   )
                   ])
 

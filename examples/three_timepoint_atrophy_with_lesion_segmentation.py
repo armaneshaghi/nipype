@@ -1,14 +1,11 @@
-##placeholders are as follows:
+##placeholders are as follows, note there is no lesion mask because we generate it:
 ##{subject_id_to_replace}
 ##{baseline_t1_nii_gz}
 ##{baseline_t2_nii_gz}
-##{baseline_t2_lesion_mask_nii_gz}
 ##{fu1_t1_nii_gz}
 ##{fu1_t2_nii_gz}
-##{fu1_t2_lesion_mask_nii_gz}
 ##{fu2_t1_nii_gz}
 ##{fu2_t2_nii_gz}
-##{fu2_t2_lesion_mask_nii_gz}
 
 import os
 from nipype.interfaces.fsl import FLIRT
@@ -25,7 +22,7 @@ from nipype.interfaces.nmr.utils import gif
 import nipype.pipeline.engine as pe
 import nipype.interfaces.io as nio
 import nipype.interfaces.utility as util
-
+from nipype.interfaces.nmr.utils import segmentLesion
 
 subject_list = ['{subject_id_to_replace}']
 workflow = pe.Workflow(name = 'second_wave')
@@ -37,16 +34,22 @@ infosource.iterables = ('subject_id', subject_list)
 templates = {{
             "baseline_t1" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{baseline_t1_nii_gz}',
             "baseline_t2" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{baseline_t2_nii_gz}',
-            "baseline_t2_lesion" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{baseline_t2_lesion_mask_nii_gz}',
             "fu1_t1" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu1_t1_nii_gz}' ,
-            "fu1_t2" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu1_t2_nii_gz}',
-            "fu1_t2_lesion" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu1_t2_lesion_mask_nii_gz}',
+            "fu1_t2" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu1_t2_nii_gz}'
             "fu2_t1" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu2_t1_nii_gz}' ,
-            "fu2_t2" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu2_t2_nii_gz}',
-            "fu2_t2_lesion" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu2_t2_lesion_mask_nii_gz}',
-            }}
+            "fu2_t2" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu2_t2_nii_gz}'
+             }}
 
 file_selector = pe.Node( SelectFiles(templates), "selectfiles") 
+
+segment_lesion_baseline = pe.Node(name=  'segment_lesion_baseline' , interface = segmentLesion())
+segment_lesion_baseline.inputs.flair_lesion = 'flair_lesion.nii.gz'
+
+segment_lesion_fu1 = pe.Node(name=  'segment_lesion_fu1' , interface = segmentLesion())
+segment_lesion_fu1.inputs.flair_lesion = 'flair_lesion.nii.gz'
+
+segment_lesion_fu2 = pe.Node(name=  'segment_lesion_fu2' , interface = segmentLesion())
+segment_lesion_fu2.inputs.flair_lesion = 'flair_lesion.nii.gz'
 
 bet_baseline = pe.Node(name = 'bet_baseline',
                        interface = BET())
@@ -55,9 +58,11 @@ bet_baseline.inputs.mask = True
 bet_fu1 = pe.Node(name = 'bet_fu1', 
                      interface = BET() )
 bet_fu1.inputs.mask = True
-bet_fu2 = pe.Node(name = 'bet_fu2',
-                     interface = BET() )
+
+bet_fu2 = pe.Node(name = 'bet_fu2', 
+                                     interface = BET() )
 bet_fu2.inputs.mask = True
+
 
 n4_baseline = pe.Node(name = 'n4_baseline', interface = N4BiasFieldCorrection())
 n4_fu1 = pe.Node(name = 'n4_fu1', interface = N4BiasFieldCorrection() )
@@ -69,16 +74,19 @@ n4_fu2.inputs.dimension = 3
 regt2t1_baseline = pe.Node(interface = FLIRT(), name = 't2t1_baseline')
 regt2t1_fu1 = pe.Node(interface = FLIRT(), name = 't2t1_fu1')
 regt2t1_fu2 = pe.Node(interface = FLIRT(), name = 't2t1_fu2')
+
 regt2maskt1_baseline = pe.Node(interface = ApplyXfm(), 
                               name = 't2maskt1_baseline')
 regt2maskt1_baseline.inputs.apply_xfm = True
+
 regt2maskt1_fu1 = pe.Node(interface = ApplyXfm(),
                              name = 't2maskt1_fu1')
 regt2maskt1_fu1.inputs.apply_xfm = True
 
 regt2maskt1_fu2 = pe.Node(interface = ApplyXfm(),
-                             name = 't2maskt1_fu2')
+                                             name = 't2maskt1_fu2')
 regt2maskt1_fu2.inputs.apply_xfm = True
+
 
 binarise_baseline = pe.Node(interface = UnaryMaths(),
                            name = 'binarise_baseline')
@@ -90,27 +98,27 @@ binarise_fu1 = pe.Node(interface = UnaryMaths(),
 binarise_fu1.inputs.operation = 'bin'
 
 binarise_fu2 = pe.Node(interface = UnaryMaths(),
-                           name = 'binarise_fu2')
+                                           name = 'binarise_fu2')
 
 binarise_fu2.inputs.operation = 'bin'
+
 
 lesion_filler_baseline = pe.Node(interface = lesion_filling(), 
                       name = 'lesion_filler_baseline')
 lesion_filler_fu1 = pe.Node(interface = lesion_filling(),
                                name = 'lesion_filler_fu1')
-
 lesion_filler_fu2 = pe.Node(interface = lesion_filling(),
-                               name = 'lesion_filler_fu2')
-
+                                               name = 'lesion_filler_fu2')
 
 def lister(volume_baseline, volume_fu1, volume_fu2):
     return [volume_baseline, volume_fu1, volume_fu2]
 lister_node = pe.Node(name = 'lister_node' , 
                      interface = Function(input_names = ['volume_baseline', 
-                                                        'volume_fu1', 
-                                                        'volume_fu2'],
+                                                        'volume_fu1',
+                                                        'volume_fu2],
                                          output_names = ['volume_list'],
                                       function = lister))
+
 robust_template_maker = pe.Node(interface = mri_robust_template(),
                                name = 'mri_robust_template_maker'
                                )
@@ -137,12 +145,13 @@ robust_output_fu1_node = pe.Node(name = 'robust_output_fu1',
                                           output_names = ['volume_fu1'],
                                           function = return_fu1
                                          ))
-
-robust_output_fu2_node = pe.Node(name = 'robust_output_fu2',
+robust_output_fu2_node = pe.Node(name = 'robust_output_fu2', 
                      interface = Function(input_names = ['volume_list'],
                                           output_names = ['volume_fu2'],
                                           function = return_fu2
                                          ))
+
+
 gif_baseline = pe.Node(interface = gif(),
                       name = 'gif_baseline')
 gif_baseline.inputs.output_dir = 'gif_output'
@@ -167,36 +176,38 @@ brain_steps_fu2.inputs.steps_mask = 'brain_steps_fu2_mask.nii.gz'
 
 #check segmentation and CT estimation with 
 baseline_ct_qa = pe.Node(interface = ct_qa_unified(),
-                name = 'baseline_ct_qa')
+                                name = 'baseline_ct_qa')
 baseline_ct_qa.inputs.output_dir = 'output_dir'
 
 fu1_ct_qa = pe.Node(interface = ct_qa_unified(),
-                name = 'fu1_ct_qa')
+                                name = 'fu1_ct_qa')
 fu1_ct_qa.inputs.output_dir = 'output_dir'
 
 fu2_ct_qa = pe.Node(interface = ct_qa_unified(),
-                name = 'fu2_ct_qa')
+                                name = 'fu2_ct_qa')
 fu2_ct_qa.inputs.output_dir = 'output_dir'
+
 
 #calculate volumes
 baseline_cal_vol = pe.Node(interface = calculateCTVol(),
-                name = 'baseline_cal_vol')
+                                name = 'baseline_cal_vol')
 baseline_cal_vol.inputs.summary_csv_file = 'summary.csv'
 
 fu1_cal_vol = pe.Node(interface = calculateCTVol(),
-                name = 'fu1_cal_vol')
+                                name = 'fu1_cal_vol')
 fu1_cal_vol.inputs.summary_csv_file = 'summary.csv'
 
 fu2_cal_vol = pe.Node(interface = calculateCTVol(),
-                name = 'fu2_cal_vol')
+                                name = 'fu2_cal_vol')
 fu2_cal_vol.inputs.summary_csv_file = 'summary.csv'
-#data sink to conserve within-subject template otherwise it is deleted
 
+#data sink to conserve within-subject template otherwise it is deleted
 datasink = pe.Node(nio.DataSink(), name='sinker')
 datasink.inputs.base_directory = '/cluster/project0/MS_LATA/fourd/working/nipype/second_wave/'
 workflow.connect(infosource, 'subject_id', datasink, 'container')
 workflow.connect(robust_template_maker, 'template', datasink, 'within_subject_template')
 
+#note we are pretending t2 = flair, just to make less changes
 workflow.connect([
                   (infosource, file_selector,
                   [('subject_id','subject_id')]
@@ -205,28 +216,37 @@ workflow.connect([
                   [('baseline_t1', 'in_file' )]
                   ),
                   (file_selector, bet_fu1,
-                  [('fu1_t1', 'in_file' )]
+                  [( 'fu1_t1', 'in_file' )]
                   ),
                   (file_selector, bet_fu2,
                   [( 'fu2_t1', 'in_file' )]
                   ),
-                  (file_selector, n4_baseline,
-                  [('baseline_t1', 'input_image')]
+                  (file_selector, segment_lesion_baseline,
+                  [( 'baseline_t2', 'flair'  )]
                   ),
-                  (bet_baseline, n4_baseline,
+                  (file_selector, segment_lesion_fu1,
+                  [( 'fu1_t2', 'flair' )]
+                  ),
+                  (file_selector, segment_lesion_fu2,
+                  [( 'fu2_t2', 'flair' )]
+                  ),
+                  (file_selector, n4_baseline,
+                  [( 'baseline_t1', 'input_image')]
+                  ),
+                  ( bet_baseline, n4_baseline,
                   [('mask_file', 'mask_image' )]
                   ),
                   (file_selector, n4_fu1,
                   [( 'fu1_t1' , 'input_image' )]
                   ),
                   (bet_fu1, n4_fu1,
-                  [('mask_file', 'mask_image')]
+                  [( 'mask_file', 'mask_image')]
                   ),
                   (file_selector, n4_fu2,
                   [( 'fu2_t1' , 'input_image' )]
                   ),
                   (bet_fu2, n4_fu2,
-                  [('mask_file', 'mask_image')]
+                  [( 'mask_file', 'mask_image')]
                   ),
                   (file_selector, regt2t1_baseline,
                   [('baseline_t2','in_file')]
@@ -252,14 +272,14 @@ workflow.connect([
                   (n4_baseline, regt2maskt1_baseline,
                   [('output_image', 'reference')]
                   ),
-                  (file_selector, regt2maskt1_baseline,
-                  [( 'baseline_t2_lesion', 'in_file' )]
+                  (segment_lesion_baseline, regt2maskt1_baseline,
+                  [( 'flair_lesion', 'in_file' )]
                   ),
                   (regt2t1_fu1, regt2maskt1_fu1,
                   [('out_matrix_file', 'in_matrix_file')]
                   ),
-                  (file_selector, regt2maskt1_fu1,
-                  [('fu1_t2_lesion', 'in_file')]
+                  (segment_lesion_fu1, regt2maskt1_fu1,
+                  [('flair_lesion', 'in_file')]
                   ),
                   (n4_fu1, regt2maskt1_fu1,
                   [('output_image', 'reference')]
@@ -267,8 +287,8 @@ workflow.connect([
                   (regt2t1_fu2, regt2maskt1_fu2,
                   [('out_matrix_file', 'in_matrix_file')]
                   ),
-                  (file_selector, regt2maskt1_fu2,
-                  [('fu2_t2_lesion', 'in_file')]
+                  (segment_lesion_fu2, regt2maskt1_fu2,
+                  [('flair_lesion', 'in_file')]
                   ),
                   (n4_fu2, regt2maskt1_fu2,
                   [('output_image', 'reference')]
@@ -279,13 +299,13 @@ workflow.connect([
                   ( regt2maskt1_fu1, binarise_fu1,
                   [( 'out_file', 'in_file')]
                   ),
-                  (regt2maskt1_fu2, binarise_fu2,
+                  ( regt2maskt1_fu2, binarise_fu2,
                   [( 'out_file', 'in_file')]
                   ),
                   (binarise_baseline,lesion_filler_baseline,
                   [('out_file', 'lesion_mask')]
                   ),
-                  (n4_baseline, lesion_filler_baseline,
+                  ( n4_baseline, lesion_filler_baseline,
                   [('output_image', 'in_file')]
                   ),
                   (binarise_fu1, lesion_filler_fu1,
@@ -301,13 +321,13 @@ workflow.connect([
                   [('output_image', 'in_file')]
                   ),
                   (lesion_filler_baseline, lister_node,
-                  [('out_file', 'volume_baseline' )]
+                  [( 'out_file', 'volume_baseline' )]
                   ),
-                  (lesion_filler_fu1, lister_node,
-                  [('out_file', 'volume_fu1')]
+                  ( lesion_filler_fu1, lister_node,
+                  [( 'out_file', 'volume_fu1')]
                   ),
-                  (lesion_filler_fu2, lister_node,
-                  [('out_file', 'volume_fu2)]
+                  ( lesion_filler_fu2, lister_node,
+                  [( 'out_file', 'volume_fu2')]
                   ),
                   ( lister_node, robust_template_maker,
                   [('volume_list', 'moving_volumes')]
@@ -330,7 +350,7 @@ workflow.connect([
                   (robust_output_fu2_node, gif_fu2,
                   [( 'volume_fu2', 't1' )]
                   ),
-                  ( robust_output_baseline_node, brain_steps_baseline,
+                  (robust_output_baseline_node, brain_steps_baseline,
                   [('volume_baseline', 't1' )]
                   ),
                   (robust_output_fu1_node, brain_steps_fu1,
@@ -387,10 +407,10 @@ workflow.connect([
                   (gif_baseline, baseline_cal_vol,
                   [('segmentation_file', 'gif_segmentation')]
                   ),
-                  (gif_fu1,     fu1_cal_vol,
+                  (gif_fu1, fu1_cal_vol,
                   [('segmentation_file', 'gif_segmentation')]
                   ),
-                  (gif_fu2,     fu2_cal_vol,
+                  (gif_fu2, fu2_cal_vol,
                   [('segmentation_file', 'gif_segmentation')]
                   ),
                   (baseline_ct_qa, baseline_cal_vol,
@@ -421,4 +441,5 @@ workflow.connect([
                   [('summary_csv_file', 'fu2' )]
                   )
                   ])
+
 workflow.run()

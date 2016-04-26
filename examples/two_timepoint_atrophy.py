@@ -141,7 +141,6 @@ datasink = pe.Node(nio.DataSink(), name='sinker')
 datasink.inputs.base_directory = '/cluster/project0/MS_LATA/fourd/working/nipype/second_wave/'
 workflow.connect(infosource, 'subject_id', datasink, 'container')
 workflow.connect(robust_template_maker, 'template', datasink, 'within_subject_template')
-workflow.connect(baseline_cal_vol, 'summary_csv_file', datasink, 'baseline')
 
 
 workflow.connect([
@@ -266,10 +265,10 @@ workflow.connect([
                 [('volume_fu1', 't1_gif_space' )]
                 ),
                 (baseline_ct_qa, baseline_cal_vol,
-                [(gif_parcellation_steps_masked, parcellation_steps_multiplied)]
+                [('gif_parcellation_steps_masked', 'parcellation_steps_multiplied')]
                 ),
                 (fu1_ct_qa, fu1_cal_vol,
-                [(gif_parcellation_steps_masked, parcellation_steps_multiplied)]
+                [('gif_parcellation_steps_masked', 'parcellation_steps_multiplied')]
                 ),
                 (gif_baseline, baseline_cal_vol,
                 [('segmentation_file', 'gif_segmentation')]
@@ -288,6 +287,13 @@ workflow.connect([
                 ),
                 (gif_fu1, fu1_cal_vol,
                 [('tiv_file', 'TIV_file')]
+                ),
+                (baseline_cal_vol, datasink,
+                [('summary_csv_file', 'baseline')]
+                ),
+                (fu1_cal_vol, datasink,
+                [('summary_csv_file', 'fu1' )]
                 )
                 ])
+
 workflow.run()
