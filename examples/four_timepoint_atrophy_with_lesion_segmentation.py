@@ -6,6 +6,8 @@
 ##{fu1_t2_nii_gz}
 ##{fu2_t1_nii_gz}
 ##{fu2_t2_nii_gz}
+##{fu3_t1_nii_gz}
+##{fu3_t2_nii_gz}
 
 import os
 from nipype.interfaces.fsl import FLIRT
