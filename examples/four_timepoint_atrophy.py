@@ -25,6 +25,11 @@ from nipype.interfaces.nmr.utils import gif
 import nipype.pipeline.engine as pe
 import nipype.interfaces.io as nio
 import nipype.interfaces.utility as util
+from nipype.interfaces.nmr.utils import ct_qa_unified
+from nipype.interfaces.nmr.utils import calculateCTVol
+
+
+
 
 
 subject_list = ['{subject_id_to_replace}']

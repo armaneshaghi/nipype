@@ -354,11 +354,17 @@ def write_four_timepoint_pipeline_hc(baseline_t1_file_name,
             textFile.write(line + '\n')
     return None
 
-def write_bash_script(python_script_path, bash_script_path):
-    string = '''
+def write_bash_script(python_script_path, bash_script_path, longevity):
+        '''
+        Use me to write bash scripts for SGE in cs cluster
+        python_script_path and bash_script_path are both
+        longevity: the time requested, in hours (an integer), from cs cluster
+        '''
+        #sge directives, customise according to needs
+        string = '''
 #$ -S /bin/bash
 #$ -cwd
-#$ -l h_rt=48:00:0
+#$ -l h_rt={longevity}:00:0
 #$ -V
 #$ -j y
 #$ -R y
@@ -367,12 +373,31 @@ def write_bash_script(python_script_path, bash_script_path):
 #$ -l tmem=8G
 #$ -l tscratch=30G
 source activate development
-python ${python_script}'''.format(python_script = python_script_path)
-    with open(bash_script_path, 'w') as textFile:
-            textFile.write(string)
-    st = os.stat( bash_script_path )
-    os.chmod( bash_script_path , st.st_mode | stat.S_IEXEC)
+python {python_script}'''.format(python_script = python_script_path,
+                longevity = str(longevity))
+        with open(bash_script_path, 'w') as textFile:
+                textFile.write(string)
+        st = os.stat( bash_script_path )
+        os.chmod( bash_script_path , st.st_mode | stat.S_IEXEC)
 
-    return None
+        return None
 
+def is_folder_created_after_specific_date( folder_full_path , specific_date):
+         '''
+         use this to test whether the folder has been created after the specific date
+         inputs:
+         =======
 
+         specific date should be in the format similar to:
+         
+         '01-Apr-2016'
+         '''
+
+         import time
+         folder_creation_date = time.ctime(os.path.getctime( folder_full_path ))
+         cd_date_format = folder_creation_date.split()[2] + '-' + folder_creation_date.split()[1] + '-' + \
+         folder_creation_date.split()[-1]
+         cd_date_struct = time.strptime( cd_date_format, '%d-%b-%Y')
+         reference_date = time.strptime( specific_date, '%d-%b-%Y')
+         
+         return cd_date_struct > reference_date
