@@ -99,22 +99,22 @@ class gif(NMRCommand):
         t1_name = t1.split('.')[0]
         output_dir = self.inputs.output_dir
         outputs['segmentation_file'] = os.path.abspath(os.path.join(
-                  output_dir, t1_name + '_t1_' + 'NeuroMorph_' +
+                  output_dir, t1_name + '_' + 'NeuroMorph_' +
                   'Segmentation.nii.gz'))
         outputs['tiv_file'] = os.path.abspath(os.path.join(
-                  output_dir, t1_name + '_t1_' + 'NeuroMorph_' + 
+                  output_dir, t1_name + '_' + 'NeuroMorph_' + 
                   'TIV.nii.gz'))
         outputs['parcellation_file'] = os.path.abspath(os.path.join(
-                  output_dir, t1_name + '_t1_' + 'NeuroMorph_' +
+                  output_dir, t1_name + '_' + 'NeuroMorph_' +
                   'Parcellation.nii.gz'))
         outputs['Cerebellum_file'] = os.path.abspath(os.path.join(
-                  output_dir, t1_name + '_t1_' + 'Cerebellum.nii.gz' ))
+                  output_dir, t1_name + '_' + 'Cerebellum.nii.gz' ))
         outputs[ 'priors' ] = os.path.abspath(os.path.join(output_dir,
-                  t1_name + '_t1_' + 'NeuroMorph_prior.nii.gz' ))
+                  t1_name + '_' + 'NeuroMorph_prior.nii.gz' ))
         outputs[ 'bias_corrected' ] = os.path.abspath(os.path.join(output_dir,
-                  t1_name + '_t1_' + 'NeuroMorph_BiasCorrected.nii.gz' ))
+                  t1_name + '_' + 'NeuroMorph_BiasCorrected.nii.gz' ))
         outputs['Brain_file'] = os.path.abspath(os.path.join(output_dir,
-                  output_dir, t1_name + '_t1_' + 'NeuroMorph_Brain.nii.gz'))
+                  t1_name + '_' + 'NeuroMorph_Brain.nii.gz'))
         return outputs
 #/home/aeshaghi/scripts/segment_lesion.sh /cluster/project0/MS_LATA/fourd/patients/ROME_045/baseline_flair.nii.gz /cluster/project0/MS_LATA/fourd/patients/ROME_045/baseline_flair_lesion.nii.gz
 class segmentLesionInputSpec( NMRCommandInputSpec ):
