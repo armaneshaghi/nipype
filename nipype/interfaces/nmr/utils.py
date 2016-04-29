@@ -95,9 +95,9 @@ class gif(NMRCommand):
 
      def _list_outputs(self):
         outputs = self.output_spec().get()
+        output_dir = self.inputs.output_dir
         t1 = self.inputs.t1
         t1_name = t1.split('.')[0]
-        output_dir = self.inputs.output_dir
         outputs['segmentation_file'] = os.path.abspath(os.path.join(
                   output_dir, t1_name + '_' + 'NeuroMorph_' +
                   'Segmentation.nii.gz'))
@@ -111,8 +111,8 @@ class gif(NMRCommand):
                   output_dir, t1_name + '_' + 'Cerebellum.nii.gz' ))
         outputs[ 'priors' ] = os.path.abspath(os.path.join(output_dir,
                   t1_name + '_' + 'NeuroMorph_prior.nii.gz' ))
-        outputs[ 'bias_corrected' ] = os.path.abspath(os.path.join(output_dir,
-                  t1_name + '_' + 'NeuroMorph_BiasCorrected.nii.gz' ))
+        outputs[ 'bias_corrected' ] = os.path.abspath(os.path.join(
+                output_dir, t1_name + '_' + 'NeuroMorph_BiasCorrected.nii.gz' ))
         outputs['Brain_file'] = os.path.abspath(os.path.join(output_dir,
                   t1_name + '_' + 'NeuroMorph_Brain.nii.gz'))
         return outputs
