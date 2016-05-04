@@ -425,31 +425,31 @@ workflow.connect([
                   [('cortical_thickness_file', 'cortical_thickness_file')]
                   ),
                   (baseline_ct_qa, datasink,
-                  [('animated_X', 'baseline_qa')]
+                  [('animated_X', 'baseline_qa_X')]
                   ),
                   (baseline_ct_qa, datasink,
-                  [('animated_Y', 'baseline_qa')]
+                  [('animated_Y', 'baseline_qa_Y')]
                   ),
                   (baseline_ct_qa, datasink,
-                  [('animated_Z', 'baseline_qa')]
+                  [('animated_Z', 'baseline_qa_Z')]
                   ),
                   (fu1_ct_qa, datasink,
-                  [('animated_X', 'fu1_qa')]
+                  [('animated_X', 'fu1_qa_X')]
                   ),
                   (fu1_ct_qa, datasink,
-                  [('animated_Y', 'fu1_qa')]
+                  [('animated_Y', 'fu1_qa_Y')]
                   ),
                   (fu1_ct_qa, datasink,
-                  [('animated_Z', 'fu1_qa')]
+                  [('animated_Z', 'fu1_qa_Z')]
                   ),
                   (fu2_ct_qa, datasink,
-                  [('animated_X', 'fu2_qa')]
+                  [('animated_X', 'fu2_qa_X')]
                   ),
                   (fu2_ct_qa, datasink,
-                  [('animated_Y', 'fu2_qa')]
+                  [('animated_Y', 'fu2_qa_Y')]
                   ),
                   (fu2_ct_qa, datasink,
-                  [('animated_Z', 'fu2_qa')]
+                  [('animated_Z', 'fu2_qa_Z')]
                   ),
                   (gif_baseline, baseline_cal_vol,
                   [('tiv_file', 'TIV_file')]

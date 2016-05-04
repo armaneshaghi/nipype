@@ -159,6 +159,12 @@ class ct_qa_unifiedOutputSpec( TraitedSpec ):
         gif_parcellation_steps_masked = File(exists = True,
                 desc = 
                 'parcellation from gif, which has been multiplied by steps mask to remove extra tissues')
+        animated_X = File(exists = True,
+                        desc = 'gif animation of axial slices')
+        animated_Y = File(exists = True,
+                        desc = 'gif animation of sagittal slices')
+        animated_Z = File(exists = True,
+                        desc = 'gif animation of coronal slices')
 
 class ct_qa_unified( NMRCommand ):
         _cmd = '/home/aeshaghi/scripts/ct_qa_unified.sh'
