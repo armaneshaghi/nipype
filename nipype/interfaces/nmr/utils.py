@@ -1,4 +1,5 @@
 import os
+import glob
 from .base import NMRCommandInputSpec,NMRCommand, find_arman_home
 from ..base import TraitedSpec, File, traits, InputMultiPath, OutputMultiPath, isdefined
 home = find_arman_home()
@@ -89,32 +90,23 @@ class gif(NMRCommand):
      
      def _format_arg(self, name, spec, value):
         if name == 'output_dir':
-            output_dir =  self.inputs.output_dir
-            return  os.path.abspath( output_dir )
+            output_dir =  os.getcwd()
+            self.inputs.output_dir = output_dir
+            print(output_dir)
+            return output_dir
         return super(gif, self)._format_arg(name, spec, value)
 
      def _list_outputs(self):
         outputs = self.output_spec().get()
         output_dir = self.inputs.output_dir
-        t1 = self.inputs.t1
-        t1_name = t1.split('.')[0]
-        outputs['segmentation_file'] = os.path.abspath(os.path.join(
-                  output_dir, t1_name + '_' + 'NeuroMorph_' +
-                  'Segmentation.nii.gz'))
-        outputs['tiv_file'] = os.path.abspath(os.path.join(
-                  output_dir, t1_name + '_' + 'NeuroMorph_' + 
-                  'TIV.nii.gz'))
-        outputs['parcellation_file'] = os.path.abspath(os.path.join(
-                  output_dir, t1_name + '_' + 'NeuroMorph_' +
-                  'Parcellation.nii.gz'))
-        outputs['Cerebellum_file'] = os.path.abspath(os.path.join(
-                  output_dir, t1_name + '_' + 'Cerebellum.nii.gz' ))
-        outputs[ 'priors' ] = os.path.abspath(os.path.join(output_dir,
-                  t1_name + '_' + 'NeuroMorph_prior.nii.gz' ))
-        outputs[ 'bias_corrected' ] = os.path.abspath(os.path.join(
-                output_dir, t1_name + '_' + 'NeuroMorph_BiasCorrected.nii.gz' ))
-        outputs['Brain_file'] = os.path.abspath(os.path.join(output_dir,
-                  t1_name + '_' + 'NeuroMorph_Brain.nii.gz'))
+        niftis = glob.glob(os.path.join(self.inputs.output_dir, "*.nii.gz"))
+        outputs['segmentation_file'] = [f for f in niftis if 'Segmentation.nii.gz' in f][0]
+        outputs['tiv_file'] = [ f for f in niftis if 'TIV.nii.gz' in f][0]
+        outputs['parcellation_file'] = [f for f in niftis if 'Parcellation.nii.gz' in f ][0]
+        outputs['Cerebellum_file'] = [ f for f in niftis if 'Cerebellum.nii.gz' in f ][0]
+        outputs[ 'priors' ] = [f for f in niftis if 'NeuroMorph_prior.nii.gz' in f][0]
+        outputs[ 'bias_corrected' ] = [f for f in niftis if 'NeuroMorph_BiasCorrected.nii.gz' in f][0] 
+        outputs['Brain_file'] = [f for f in niftis if 'NeuroMorph_Brain.nii.gz' in f][0]
         return outputs
 #/home/aeshaghi/scripts/segment_lesion.sh /cluster/project0/MS_LATA/fourd/patients/ROME_045/baseline_flair.nii.gz /cluster/project0/MS_LATA/fourd/patients/ROME_045/baseline_flair_lesion.nii.gz
 class segmentLesionInputSpec( NMRCommandInputSpec ):
