@@ -187,22 +187,22 @@ workflow.connect([
                    [('volume_fu1', 't1_gif_space' )]
                    ),
                    (baseline_ct_qa, datasink,
-                   [('animated_X', 'baseline')]
+                   [('animated_X', 'baseline_qa')]
                    ),
                    (baseline_ct_qa, datasink,
-                   [('animated_Y', 'baseline')]
+                   [('animated_Y', 'baseline_qa')]
                    ),
                    (baseline_ct_qa, datasink,
-                   [('animated_Z', 'baseline')]
+                   [('animated_Z', 'baseline_qa')]
                    ),
                    (fu1_ct_qa, datasink,
-                   [('animated_X', 'fu1')]
+                   [('animated_X', 'fu1_qa')]
                    ),
                    (fu1_ct_qa, datasink,
-                   [('animated_Y', 'fu1')]
+                   [('animated_Y', 'fu1_qa')]
                    ),
                    (fu1_ct_qa, datasink,
-                   [('animated_Z', 'fu1')]
+                   [('animated_Z', 'fu1_qa')]
                    ),
                    (baseline_ct_qa, baseline_cal_vol,
                    [('gif_parcellation_steps_masked', 'parcellation_steps_multiplied')]

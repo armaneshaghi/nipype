@@ -538,40 +538,40 @@ workflow.connect([
                   [('cortical_thickness_file', 'cortical_thickness_file')]
                   ),
                   (baseline_ct_qa, datasink,
-                  [('animated_X', 'baseline')]
+                  [('animated_X', 'baseline_qa')]
                   ),
                   (baseline_ct_qa, datasink,
-                  [('animated_Y', 'baseline')]
+                  [('animated_Y', 'baseline_qa')]
                   ),
                   (baseline_ct_qa, datasink,
-                  [('animated_Z', 'baseline')]
+                  [('animated_Z', 'baseline_qa')]
                   ),
                   (fu1_ct_qa, datasink,
-                  [('animated_X', 'fu1')]
+                  [('animated_X', 'fu1_qa')]
                   ),
                   (fu1_ct_qa, datasink,
-                  [('animated_Y', 'fu1')]
+                  [('animated_Y', 'fu1_qa')]
                   ),
                   (fu1_ct_qa, datasink,
-                  [('animated_Z', 'fu1')]
+                  [('animated_Z', 'fu1_qa')]
                   ),
                   (fu2_ct_qa, datasink,
-                  [('animated_X', 'fu2')]
+                  [('animated_X', 'fu2_qa')]
                   ),
                   (fu2_ct_qa, datasink,
-                  [('animated_Y', 'fu2')]
+                  [('animated_Y', 'fu2_qa')]
                   ),
                   (fu2_ct_qa, datasink,
-                  [('animated_Z', 'fu2')]
+                  [('animated_Z', 'fu2_qa')]
                   ),
                   (fu3_ct_qa, datasink,
-                  [('animated_X', 'fu3')]
+                  [('animated_X', 'fu3_qa')]
                   ),
                   (fu3_ct_qa, datasink,
-                  [('animated_Y', 'fu3')]
+                  [('animated_Y', 'fu3_qa')]
                   ),
                   (fu3_ct_qa, datasink,
-                  [('animated_Z', 'fu3')]
+                  [('animated_Z', 'fu3_qa')]
                   ),
                   (gif_baseline, baseline_cal_vol,
                   [('tiv_file', 'TIV_file')]
