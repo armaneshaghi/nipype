@@ -5,14 +5,14 @@ def write_two_timepoint_pipeline(baseline_t1_file_name,
                                  baseline_t2_file_name,
                                  baseline_t2_lesion_mask, fu1_t1_file_name, fu1_t2_file_name, 
                                  fu1_t2_lesion_mask, 
-                                folder_name, script_full_path):
+                                 folder_name, script_full_path,
+                                 template = '/home/aeshaghi/nipype_development/nipype/examples/two_timepoint_atrophy.py'):
     '''
     NB: all nifti files must come with their extension (nii.gz)
     
     '''
 
-    with open('/home/aeshaghi/nipype_development/nipype/examples/two_timepoint_atrophy.py', 
-              'r') as textFile:
+    with open(template,  'r') as textFile:
         pipeline_template = textFile.readlines()
     
     #consolidate everything into one string for placeholder replacement
@@ -45,11 +45,10 @@ def write_two_timepoint_with_lesion_segmentation_pipeline(
                 fu1_t1_file_name,
                 fu1_t2_file_name, 
                 script_full_path,
-                folder_name):
+                folder_name,
+                template = '/home/aeshaghi/nipype_development/nipype/examples/two_timepoint_atrophy_with_lesion_segmentation.py'):
     
-    with open(
-        '/home/aeshaghi/nipype_development/nipype/examples/two_timepoint_atrophy_with_lesion_segmentation.py', 
-          'r') as textFile:
+    with open(template, 'r') as textFile:
         pipeline_template = textFile.readlines()
     
     #consolidate everything into one string for placeholder replacement
@@ -77,14 +76,14 @@ def write_two_timepoint_with_lesion_segmentation_pipeline(
 def write_two_timepoint_pipeline_hc(baseline_t1_file_name, 
                                       fu1_t1_file_name, 
                                        folder_name, 
-                                       script_full_path):
+                                       script_full_path,
+                                       template = '/home/aeshaghi/nipype_development/nipype/examples/two_timepoint_atrophy_healthy_controls.py'):
     '''
     NB: all nifti files must come with their extension (nii.gz)
     
     '''
 
-    with open('/home/aeshaghi/nipype_development/nipype/examples/two_timepoint_atrophy_healthy_controls.py', 
-              'r') as textFile:
+    with open(template, 'r') as textFile:
         pipeline_template = textFile.readlines()
     
     #consolidate everything into one string for placeholder replacement
@@ -116,16 +115,15 @@ def write_three_timepoint_pipeline(baseline_t1_file_name,
                                    fu2_t2_file_name, 
                                    fu2_t2_lesion_mask,
                                    folder_name, 
-                                   script_full_path):
+                                   script_full_path,
+                                   template= '/home/aeshaghi/nipype_development/nipype/examples/three_timepoint_atrophy.py'):
     '''
     NB: all nifti files must come with their extension (nii.gz)
     
     '''
 
-    with open('/home/aeshaghi/nipype_development/nipype/examples/three_timepoint_atrophy.py', 
-              'r') as textFile:
+    with open(template, 'r') as textFile:
         pipeline_template = textFile.readlines()
-    
     #consolidate everything into one string for placeholder replacement
     pipeline_template = " ".join(pipeline_template)
     filled_pipeline = pipeline_template.format( 
@@ -160,11 +158,10 @@ def write_three_timepoint_with_lesion_segmentation_pipeline(
                 fu2_t1_file_name,
                 fu2_t2_file_name, 
                 script_full_path,
-                folder_name):
+                folder_name,
+                template =  '/home/aeshaghi/nipype_development/nipype/examples/three_timepoint_atrophy_with_lesion_segmentation.py'):
     
-    with open(
-        '/home/aeshaghi/nipype_development/nipype/examples/three_timepoint_atrophy_with_lesion_segmentation.py', 
-          'r') as textFile:
+    with open(template, 'r') as textFile:
         pipeline_template = textFile.readlines()
     
     #consolidate everything into one string for placeholder replacement
@@ -194,14 +191,14 @@ def write_three_timepoint_pipeline_hc(baseline_t1_file_name,
                                        fu1_t1_file_name, 
                                        fu2_t1_file_name, 
                                        folder_name, 
-                                       script_full_path):
+                                       script_full_path,
+                                       template = '/home/aeshaghi/nipype_development/nipype/examples/three_timepoint_atrophy_healthy_controls.py'):
     '''
     NB: all nifti files must come with their extension (nii.gz)
     
     '''
 
-    with open('/home/aeshaghi/nipype_development/nipype/examples/three_timepoint_atrophy_healthy_controls.py', 
-              'r') as textFile:
+    with open(template, 'r') as textFile:
         pipeline_template = textFile.readlines()
     
     #consolidate everything into one string for placeholder replacement
@@ -237,14 +234,14 @@ def write_four_timepoint_pipeline(baseline_t1_file_name,
                                    fu3_t2_file_name, 
                                    fu3_t2_lesion_mask,
                                    folder_name, 
-                                   script_full_path):
+                                   script_full_path,
+                                   template = '/home/aeshaghi/nipype_development/nipype/examples/four_timepoint_atrophy.py'):
     '''
     NB: all nifti files must come with their extension (nii.gz)
     
     '''
 
-    with open('/home/aeshaghi/nipype_development/nipype/examples/four_timepoint_atrophy.py', 
-              'r') as textFile:
+    with open(template,  'r') as textFile:
         pipeline_template = textFile.readlines()
     
     #consolidate everything into one string for placeholder replacement
@@ -286,11 +283,10 @@ def write_four_timepoint_with_lesion_segmentation_pipeline(
                 fu3_t1_file_name,
                 fu3_t2_file_name, 
                 script_full_path,
-                folder_name):
+                folder_name,
+                template = '/home/aeshaghi/nipype_development/nipype/examples/four_timepoint_atrophy_with_lesion_segmentation.py'):
     
-    with open(
-        '/home/aeshaghi/nipype_development/nipype/examples/four_timepoint_atrophy_with_lesion_segmentation.py', 
-          'r') as textFile:
+    with open(template, 'r') as textFile:
         pipeline_template = textFile.readlines()
     
     #consolidate everything into one string for placeholder replacement
@@ -323,14 +319,14 @@ def write_four_timepoint_pipeline_hc(baseline_t1_file_name,
                                        fu2_t1_file_name, 
                                        fu3_t1_file_name, 
                                        folder_name, 
-                                       script_full_path):
+                                       script_full_path,
+                                       template = '/home/aeshaghi/nipype_development/nipype/examples/four_timepoint_atrophy_healthy_controls.py'):
     '''
     NB: all nifti files must come with their extension (nii.gz)
     
     '''
 
-    with open('/home/aeshaghi/nipype_development/nipype/examples/four_timepoint_atrophy_healthy_controls.py', 
-              'r') as textFile:
+    with open(template, 'r') as textFile:
         pipeline_template = textFile.readlines()
     
     #consolidate everything into one string for placeholder replacement

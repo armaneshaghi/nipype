@@ -44,7 +44,7 @@ templates = {{
             "fu1_t1" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu1_t1_nii_gz}' ,
             "fu1_t2" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu1_t2_nii_gz}',
             "fu1_t2_lesion" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu1_t2_lesion_mask_nii_gz}',
-            "fu2_t1" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu2_t1_nii_gz}' ,
+            "fu2_t1" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu2_t1_nii_gz}',
             "fu2_t2" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu2_t2_nii_gz}',
             "fu2_t2_lesion" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu2_t2_lesion_mask_nii_gz}',
             }}

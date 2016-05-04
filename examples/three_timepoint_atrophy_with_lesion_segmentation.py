@@ -37,7 +37,7 @@ templates = {{
             "baseline_t1" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{baseline_t1_nii_gz}',
             "baseline_t2" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{baseline_t2_nii_gz}',
             "fu1_t1" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu1_t1_nii_gz}' ,
-            "fu1_t2" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu1_t2_nii_gz}'
+            "fu1_t2" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu1_t2_nii_gz}',
             "fu2_t1" :  '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu2_t1_nii_gz}' ,
             "fu2_t2" : '/cluster/project0/MS_LATA/fourd/patients/{{subject_id}}/{fu2_t2_nii_gz}'
              }}
@@ -117,7 +117,7 @@ def lister(volume_baseline, volume_fu1, volume_fu2):
 lister_node = pe.Node(name = 'lister_node' , 
                      interface = Function(input_names = ['volume_baseline', 
                                                         'volume_fu1',
-                                                        'volume_fu2],
+                                                        'volume_fu2'],
                                          output_names = ['volume_list'],
                                       function = lister))
 
