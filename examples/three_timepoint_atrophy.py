@@ -387,6 +387,33 @@ workflow.connect([
                   (fu2_ct_qa, fu2_cal_vol,
                   [('gif_parcellation_steps_masked', 'parcellation_steps_multiplied')]
                   ),
+                  (baseline_ct_qa, datasink,
+                  [('animated_X', 'baseline')]
+                  ),
+                  (baseline_ct_qa, datasink,
+                  [('animated_Y', 'baseline')]
+                  ),
+                  (baseline_ct_qa, datasink,
+                  [('animated_Z', 'baseline')]
+                  ),
+                  (fu1_ct_qa, datasink,
+                  [('animated_X', 'fu1')]
+                  ),
+                  (fu1_ct_qa, datasink,
+                  [('animated_Y', 'fu1')]
+                  ),
+                  (fu1_ct_qa, datasink,
+                  [('animated_Z', 'fu1')]
+                  ),
+                  (fu2_ct_qa, datasink,
+                  [('animated_X', 'fu2')]
+                  ),
+                  (fu2_ct_qa, datasink,
+                  [('animated_Y', 'fu2')]
+                  ),
+                  (fu2_ct_qa, datasink,
+                  [('animated_Z', 'fu2')]
+                  ),
                   (gif_baseline, baseline_cal_vol,
                   [('segmentation_file', 'gif_segmentation')]
                   ),
