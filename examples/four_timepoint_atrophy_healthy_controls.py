@@ -133,6 +133,10 @@ gif_fu2 = pe.Node(interface = gif(),
                      name = 'gif_fu2')
 gif_fu2.inputs.output_dir = 'gif_output'
 
+gif_fu3 = pe.Node(interface = gif(),
+                                     name = 'gif_fu3')
+gif_fu3.inputs.output_dir = 'gif_output'
+
 brain_steps_baseline = pe.Node(interface = steps(),
                      name = 'brain_steps_baseline')
 brain_steps_baseline.inputs.steps_mask = 'brain_steps_baseline_mask.nii.gz'
@@ -193,8 +197,7 @@ workflow.connect(robust_template_maker, 'template', datasink, 'within_subject_te
 workflow.connect([
                  (infosource, file_selector,
                  [('subject_id','subject_id')]
-                 )
-                 ,
+                 ),
                  (file_selector, bet_baseline,
                  [('baseline_t1', 'in_file' )]
                  ),
