@@ -26,7 +26,7 @@ from nipype.interfaces.nmr.utils import calculateCTVol
 
 
 subject_list = ['{subject_id_to_replace}']
-workflow = pe.Workflow(name = 'second_wave')
+workflow = pe.Workflow(name = 'third_wave')
 workflow.base_dir = '/cluster/project0/MS_LATA/fourd/working/nipype'
 infosource = pe.Node(interface = util.IdentityInterface(fields=['subject_id']), 
                                                           name = "infosource")
@@ -44,17 +44,22 @@ file_selector = pe.Node( SelectFiles(templates), "selectfiles")
 bet_baseline = pe.Node(name = 'bet_baseline',
                        interface = BET())
 bet_baseline.inputs.mask = True
+bet_baseline.inputs.frac = 0.08
 
 bet_fu1 = pe.Node(name = 'bet_fu1', 
                      interface = BET() )
 bet_fu1.inputs.mask = True
+bet_fu1.inputs.frac = 0.08
 
 bet_fu2 = pe.Node(name = 'bet_fu2', 
                      interface = BET() )
 bet_fu2.inputs.mask = True
+bet_fu2.inputs.frac = 0.08
+
 bet_fu3 = pe.Node(name = 'bet_fu3', 
                                      interface = BET() )
 bet_fu3.inputs.mask = True
+bet_fu3.inputs.frac = 0.08
 
 n4_baseline = pe.Node(name = 'n4_baseline', interface = N4BiasFieldCorrection())
 n4_baseline.inputs.dimension = 3
@@ -431,4 +436,4 @@ workflow.connect([
                  )
                   ])
 
-workflow.run()
+workflow.run(plugin='MultiProc', plugin_args={'n_procs' : 4})
